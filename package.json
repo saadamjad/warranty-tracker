@@ -30,7 +30,8 @@
     "test:watch": "vitest",
     "db:migrate": "prisma migrate dev",
     "typecheck": "tsc --noEmit",
-    "postinstall": "prisma generate && node scripts/copy-vendor-assets.mjs"
+    "postinstall": "prisma generate && node scripts/copy-vendor-assets.mjs",
+    "test:db": "vitest run --config vitest.db.config.mts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",

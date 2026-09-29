@@ -11,5 +11,7 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
+    // Database tests run separately: npm run test:db
+    exclude: ["src/**/*.db.test.ts", "node_modules/**"],
   },
 });
