@@ -5,7 +5,7 @@ type Props = {
   autoFocus?: boolean;
 };
 
-const PLACEHOLDER = "Search by product, store, or anything you remember";
+const PLACEHOLDER = "Product, store, or anything you remember";
 
 export function SearchBox({ defaultValue, onQuery, autoFocus }: Props) {
   return (

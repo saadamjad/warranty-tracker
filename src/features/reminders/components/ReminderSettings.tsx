@@ -47,20 +47,22 @@ export function ReminderSettings() {
 
 function DaysInput({ label, value, onChange }: { label: string; value: number; onChange: (days: number) => void }) {
   return (
-    <label className="flex flex-wrap items-center gap-2">
+    <label className="flex flex-col gap-1">
       <span>{label}</span>
-      <input
-        type="number"
-        min={1}
-        max={90}
-        value={value}
-        onChange={(event) => {
-          const days = Number(event.target.value);
-          if (days >= 1 && days <= 90) onChange(days);
-        }}
-        className="w-20 rounded-card border border-line bg-background px-3 py-2"
-      />
-      <span>days</span>
+      <span className="flex items-center gap-2">
+        <input
+          type="number"
+          min={1}
+          max={90}
+          value={value}
+          onChange={(event) => {
+            const days = Number(event.target.value);
+            if (days >= 1 && days <= 90) onChange(days);
+          }}
+          className="w-20 rounded-card border border-line bg-background px-3 py-2"
+        />
+        days before
+      </span>
     </label>
   );
 }
