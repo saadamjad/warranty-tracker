@@ -126,7 +126,9 @@ model Document {
   pageCount    Int
   /// Storage keys per page, in page order (EC-01)
   originalKeys String[]
+  /// "" where a page has no easier-to-read copy, keeping positions aligned
   enhancedKeys String[]
+  mimeTypes    String[]
   ocrText      String?
   sha256       String
   sizeBytes    Int
