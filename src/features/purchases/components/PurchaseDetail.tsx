@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { DocumentsSection } from "@/features/documents/components/DocumentsSection";
+import { RemindersToggle } from "@/features/reminders/components/RemindersToggle";
 import { ReturnSection } from "@/features/warranty/components/ReturnSection";
 import { WarrantySection } from "@/features/warranty/components/WarrantySection";
 import type { Purchase, PurchaseFields } from "@/lib/db/types";
@@ -84,6 +85,7 @@ function PurchaseForm({ purchase }: { purchase: Purchase }) {
         <>
           <WarrantySection purchase={purchase} />
           <ReturnSection purchase={purchase} />
+          <RemindersToggle purchase={purchase} />
           <DeletePurchase id={purchase.id} />
         </>
       )}
