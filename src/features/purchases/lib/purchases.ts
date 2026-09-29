@@ -1,4 +1,5 @@
 import { differenceInCalendarDays, parseISO } from "date-fns";
+import { addPendingPurge } from "@/features/sync/lib/state";
 import { db } from "@/lib/db";
 import type { Purchase, PurchaseFields } from "@/lib/db/types";
 import { applyUserEdits } from "./fields";
@@ -95,8 +96,14 @@ export function daysLeftToRestore(deletedAt: string, today: Date = new Date()): 
   return Math.max(0, RESTORE_DAYS - differenceInCalendarDays(today, parseISO(deletedAt)));
 }
 
-/** Permanent removal from this device, only from Recently Deleted after confirmation (D-29). */
+/** Permanent removal, only from Recently Deleted after confirmation (D-29). Backup removes it too. */
 export async function deletePurchaseForever(id: string): Promise<void> {
+  await removePurchaseLocally(id);
+  await addPendingPurge(id);
+}
+
+/** Removes a purchase with its documents, pages and warranties from this device only. */
+export async function removePurchaseLocally(id: string): Promise<void> {
   await db.transaction("rw", [db.purchases, db.documents, db.pages, db.warranties], async () => {
     const documentIds = await db.documents.where("purchaseId").equals(id).primaryKeys();
     await db.pages.where("documentId").anyOf(documentIds).delete();

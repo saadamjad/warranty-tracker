@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getPendingPurges } from "@/features/sync/lib/state";
 import { db } from "@/lib/db";
 import type { VaultDocument } from "@/lib/db/types";
 import {
@@ -94,6 +95,7 @@ describe("purchases lib", () => {
     expect(await getPurchase(id)).toBeUndefined();
     expect(await db.documents.count()).toBe(0);
     expect(await db.pages.count()).toBe(0);
+    expect(await getPendingPurges()).toEqual([id]);
   });
 });
 
