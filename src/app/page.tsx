@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BackupPrompt } from "@/features/account/components/BackupPrompt";
 import { OfflineNote } from "@/features/offline/components/OfflineNote";
 import { RecentPurchases } from "@/features/purchases/components/RecentPurchases";
 import { ComingUp } from "@/features/reminders/components/ComingUp";
@@ -28,6 +29,8 @@ export default function Home() {
       <SearchBox />
 
       <ComingUp />
+
+      <BackupPrompt />
 
       <RecentPurchases />
 
