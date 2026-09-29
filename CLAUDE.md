@@ -18,7 +18,7 @@ Read only what the current task needs. Don't restate these docs elsewhere; link 
 ## How to work
 1. Open `docs/PLAN.md`, take the first unchecked task of the lowest open phase.
 2. Read only the SPEC sections that task cites (IDs in brackets), plus ARCHITECTURE/STACK if relevant.
-3. Implement → add/adjust tests → `npm run lint && npm run typecheck && npm test && npm run build`.
+3. Implement → add/adjust tests → `npm run lint && npm run typecheck && npm test && npm run build` (+ `npm run test:db` for server data changes).
 4. Commit in small logical steps (`feat|fix|test|refactor|docs|chore(phase-N): …`, cite IDs); tick the box in PLAN.md when the task is done (D-28).
 5. If a requirement is unclear or conflicts, stop and ask the user; record the answer in SPEC §8 Decisions.
 
@@ -50,5 +50,5 @@ Also: no dashboards/charts, sparse notifications, no legal claims about warranty
 docker compose up -d        # postgres (port 5433) + S3Mock storage (port 9000)
 npm run dev                 # http://localhost:3000 (magic links print to terminal)
 npm run db:migrate          # apply Prisma schema
-npm test · npm run lint · npm run typecheck · npm run build
+npm test · npm run test:db · npm run lint · npm run typecheck · npm run build
 ```
