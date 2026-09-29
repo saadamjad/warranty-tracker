@@ -8,7 +8,7 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] `docker-compose.yml` (postgres:16, minio) + `.env.example`
 - [ ] Prisma schema + first migration; `src/lib/server/{prisma,repo,storage,auth}.ts` skeletons
 - [ ] Vitest config (jsdom, fake-indexeddb setup, `@/` alias); replace placeholder smoke test
-- [ ] CI: add typecheck step to existing `.github/workflows/ci.yml` (lint + typecheck + test + build)
+- [x] CI: add typecheck step to existing `.github/workflows/ci.yml` (lint + typecheck + test + build)
 - [x] git init, public GitHub repo, push
 
 ## Phase 1 — Local core  [FR-01,02,03,11,12,15,16,23,30,32,45 · AC-1,3,8,18]
