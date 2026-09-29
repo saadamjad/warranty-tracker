@@ -1,11 +1,130 @@
-import type { Vault } from "@prisma/client";
+import type { Prisma, Vault } from "@prisma/client";
+import { mergeLatest, mergePurchase } from "@/lib/sync/merge";
+import type { PullResponse, PushBody } from "@/lib/sync/schema";
 import { prisma } from "./prisma";
+import { deleteObjects } from "./storage";
+import {
+  documentFromRow,
+  documentToRow,
+  purchaseFromRow,
+  purchaseToRow,
+  warrantyFromRow,
+  warrantyToRow,
+} from "./syncMapping";
 
 // Every server query lives here and takes the session userId as its first argument,
 // so no route can read or write another user's data (SPEC §7, CLAUDE.md).
+
+/** A record id that belongs to someone else, or a child of someone else's purchase. */
+export class ForbiddenRecordError extends Error {}
+
+type Tx = Prisma.TransactionClient;
 
 /** Each user has one personal vault for now (ARCHITECTURE: future-proof for family sharing). */
 export async function getOrCreateVault(userId: string): Promise<Vault> {
   const existing = await prisma.vault.findFirst({ where: { ownerId: userId } });
   return existing ?? prisma.vault.create({ data: { ownerId: userId } });
+}
+
+/**
+ * Applies a device's changes with the shared merge rules (D-17) and records each in the
+ * change feed. All or nothing: a rejected record rolls the whole push back.
+ */
+export async function pushChanges(userId: string, body: PushBody): Promise<void> {
+  const vault = await getOrCreateVault(userId);
+  const purgedKeys = await prisma.$transaction(
+    async (tx) => {
+      for (const incoming of body.purchases) {
+        const row = await tx.purchase.findUnique({ where: { id: incoming.id } });
+        if (row && row.userId !== userId) throw new ForbiddenRecordError(`purchase ${incoming.id}`);
+        const merged = mergePurchase(row ? purchaseFromRow(row) : undefined, incoming);
+        const data = purchaseToRow(merged, userId, row?.vaultId ?? vault.id);
+        await tx.purchase.upsert({ where: { id: incoming.id }, create: data, update: data });
+        await recordChange(tx, userId, vault.id, "purchase", incoming.id, "UPSERT");
+      }
+
+      for (const incoming of body.documents) {
+        await assertOwnsPurchase(tx, userId, incoming.purchaseId);
+        const row = await tx.document.findUnique({ where: { id: incoming.id } });
+        if (row && row.userId !== userId) throw new ForbiddenRecordError(`document ${incoming.id}`);
+        const current = row ? documentFromRow(row) : undefined;
+        const merged = mergeLatest(current, incoming);
+        // File content never changes once stored (documents are append-only, D-17).
+        const content = current ? { sha256: current.sha256, files: current.files, pageCount: current.pageCount, sizeBytes: current.sizeBytes } : {};
+        const data = documentToRow({ ...merged, ...content }, userId);
+        await tx.document.upsert({ where: { id: incoming.id }, create: data, update: data });
+        await recordChange(tx, userId, vault.id, "document", incoming.id, "UPSERT");
+      }
+
+      for (const incoming of body.warranties) {
+        await assertOwnsPurchase(tx, userId, incoming.purchaseId);
+        const row = await tx.warranty.findUnique({ where: { id: incoming.id } });
+        if (row && row.userId !== userId) throw new ForbiddenRecordError(`warranty ${incoming.id}`);
+        const data = warrantyToRow(mergeLatest(row ? warrantyFromRow(row) : undefined, incoming), userId);
+        await tx.warranty.upsert({ where: { id: incoming.id }, create: data, update: data });
+        await recordChange(tx, userId, vault.id, "warranty", incoming.id, "UPSERT");
+      }
+
+      return purgePurchases(tx, userId, vault.id, body.purged);
+    },
+    // A full batch over a remote database can exceed Prisma's 5 s default.
+    { timeout: 30_000 },
+  );
+  if (purgedKeys.length) await deleteObjects(purgedKeys);
+}
+
+/** Permanently removes purchases (with documents and warranties); returns their file keys. */
+async function purgePurchases(tx: Tx, userId: string, vaultId: string, ids: string[]): Promise<string[]> {
+  if (ids.length === 0) return [];
+  const rows = await tx.purchase.findMany({ where: { id: { in: ids }, userId }, include: { documents: true } });
+  await tx.purchase.deleteMany({ where: { id: { in: rows.map((row) => row.id) }, userId } });
+  for (const row of rows) await recordChange(tx, userId, vaultId, "purchase", row.id, "DELETE");
+  return rows.flatMap((row) => row.documents.flatMap((document) => [...document.originalKeys, ...document.enhancedKeys])).filter(Boolean);
+}
+
+async function assertOwnsPurchase(tx: Tx, userId: string, purchaseId: string): Promise<void> {
+  const owned = await tx.purchase.count({ where: { id: purchaseId, userId } });
+  if (!owned) throw new ForbiddenRecordError(`purchase ${purchaseId}`);
+}
+
+function recordChange(tx: Tx, userId: string, vaultId: string, entity: string, entityId: string, op: "UPSERT" | "DELETE") {
+  return tx.change.create({ data: { userId, vaultId, entity, entityId, op } });
+}
+
+/** Current state of everything that changed after `cursor`, oldest change first (ARCHITECTURE: sync). */
+export async function pullChanges(userId: string, cursor: bigint, limit = 200): Promise<PullResponse> {
+  const changes = await prisma.change.findMany({
+    where: { userId, seq: { gt: cursor } },
+    orderBy: { seq: "asc" },
+    take: limit + 1,
+  });
+  const page = changes.slice(0, limit);
+  const idsOf = (entity: string) => [...new Set(page.filter((change) => change.entity === entity).map((change) => change.entityId))];
+
+  const [purchases, documents, warranties] = await Promise.all([
+    prisma.purchase.findMany({ where: { userId, id: { in: idsOf("purchase") } } }),
+    prisma.document.findMany({ where: { userId, id: { in: idsOf("document") } } }),
+    prisma.warranty.findMany({ where: { userId, id: { in: idsOf("warranty") } } }),
+  ]);
+  const existing = new Set(purchases.map((purchase) => purchase.id));
+  const purged = [
+    ...new Set(page.filter((change) => change.op === "DELETE" && !existing.has(change.entityId)).map((change) => change.entityId)),
+  ];
+
+  return {
+    purchases: purchases.map(purchaseFromRow),
+    documents: documents.map(documentFromRow),
+    warranties: warranties.map(warrantyFromRow),
+    purged,
+    cursor: String(page.at(-1)?.seq ?? cursor),
+    hasMore: changes.length > limit,
+  };
+}
+
+/** Storage keys of one of the user's documents, for presigned URLs; null if not theirs. */
+export async function documentKeys(userId: string, documentId: string) {
+  return prisma.document.findFirst({
+    where: { id: documentId, userId },
+    select: { originalKeys: true, enhancedKeys: true, mimeTypes: true },
+  });
 }
