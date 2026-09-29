@@ -1,8 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { db } from "@/lib/db";
 import { createPurchase, getPurchase, softDeletePurchase } from "../lib/purchases";
 import { PurchaseDetail } from "./PurchaseDetail";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 describe("PurchaseDetail", () => {
   afterEach(() => db.purchases.clear());

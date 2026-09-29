@@ -7,6 +7,7 @@ import { displayTitle } from "../lib/display";
 import { PURCHASE_FIELDS } from "../lib/fieldConfig";
 import { usePurchase } from "../lib/hooks";
 import { restorePurchase, updatePurchase } from "../lib/purchases";
+import { DeletePurchase } from "./DeletePurchase";
 import { EditableField } from "./EditableField";
 
 export function PurchaseDetail({ id }: { id: string }) {
@@ -73,6 +74,8 @@ function PurchaseForm({ purchase }: { purchase: Purchase }) {
           onSave={(value) => save({ [field]: value })}
         />
       ))}
+
+      {!purchase.deletedAt && <DeletePurchase id={purchase.id} />}
     </article>
   );
 }
