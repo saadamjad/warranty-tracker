@@ -5,6 +5,12 @@ import { loadSignInSetup, type SignInSetup } from "../lib/authClient";
 
 type Props = { error?: string };
 
+// Auth.js error codes → plain words. "Configuration" is also what a refused (too frequent) email gives.
+const SIGN_IN_ERRORS: Record<string, string> = {
+  Verification: "That sign-in link didn't work — it may have expired or been used. Enter your email to get a new one.",
+  Configuration: "We couldn't send a sign-in email just now. If you asked for several, wait 10 minutes and try again.",
+};
+
 /**
  * Sign in to back up and restore (FR-28). Plain form posts to Auth.js, so it works without
  * extra client libraries. Offline, it explains that saving still works.
@@ -32,7 +38,7 @@ export function SignInForm({ error }: Props) {
     <div className="flex flex-col gap-6">
       {error && (
         <p role="alert" className="text-danger">
-          That sign-in link didn&apos;t work — it may have expired. Enter your email to get a new one.
+          {SIGN_IN_ERRORS[error] ?? SIGN_IN_ERRORS.Verification}
         </p>
       )}
       <form method="post" action="/api/auth/signin/nodemailer" className="flex flex-col gap-3">
