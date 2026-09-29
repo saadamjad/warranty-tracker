@@ -38,6 +38,8 @@ export type SyncedRecord = {
 export type Purchase = SyncedRecord &
   PurchaseFields & {
     fieldMeta: Partial<Record<PurchaseField, FieldMeta>>;
+    /** Per-purchase switch for warranty and return reminders (FR-19). */
+    remindersOff?: boolean;
   };
 
 export type DocumentType = "receipt" | "invoice" | "warranty" | "other";

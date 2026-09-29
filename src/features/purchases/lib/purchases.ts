@@ -105,3 +105,7 @@ export async function deletePurchaseForever(id: string): Promise<void> {
     await db.purchases.delete(id);
   });
 }
+
+export async function setRemindersOff(id: string, remindersOff: boolean): Promise<void> {
+  await db.purchases.update(id, { remindersOff, updatedAt: nowIso() });
+}
