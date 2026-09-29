@@ -1,5 +1,6 @@
 import type { Prisma, Vault } from "@prisma/client";
 import { mergeLatest, mergePurchase } from "@/lib/sync/merge";
+import type { ReminderPrefsWire } from "@/lib/sync/prefs";
 import type { PullResponse, PushBody } from "@/lib/sync/schema";
 import { prisma } from "./prisma";
 import { deleteObjects } from "./storage";
@@ -143,6 +144,17 @@ export async function deleteAccount(userId: string): Promise<void> {
   ]);
   const keys = documents.flatMap((document) => [...document.originalKeys, ...document.enhancedKeys]).filter(Boolean);
   if (keys.length) await deleteObjects(keys);
+}
+
+/** Saves the user's reminder settings for reminder emails. */
+export async function saveReminderPrefs(userId: string, prefs: ReminderPrefsWire): Promise<void> {
+  const data = {
+    warrantyDaysBefore: prefs.warrantyDaysBefore,
+    finalDaysBefore: prefs.finalDaysBefore,
+    returnDaysBefore: prefs.returnDaysBefore,
+    emailEnabled: prefs.emailReminders,
+  };
+  await prisma.reminderPref.upsert({ where: { userId }, create: { userId, ...data }, update: data });
 }
 
 // ---- Scheduled jobs (not user-scoped: they run for everyone, from the cron route only) ----
