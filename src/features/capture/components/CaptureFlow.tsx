@@ -3,11 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useReducer, useState } from "react";
 import { DocumentTypePicker } from "@/features/documents/components/DocumentTypePicker";
+import { DuplicateWarning } from "@/features/duplicates/components/DuplicateWarning";
+import { purchasesWithSameFile } from "@/features/duplicates/lib/duplicates";
 import { ReadAndReview } from "@/features/extract/components/ReadAndReview";
 import { EnterDetailsButton } from "@/features/purchases/components/EnterDetailsButton";
-import type { DocumentType } from "@/lib/db/types";
+import type { DocumentType, Purchase } from "@/lib/db/types";
 import { draftReducer, emptyDraft } from "../lib/draft";
-import { DraftError, saveDraft } from "../lib/saveDraft";
+import { DraftError, draftHash, saveDraft } from "../lib/saveDraft";
 import { CaptureButtons } from "./CaptureButtons";
 import { PageList } from "./PageList";
 
@@ -20,15 +22,26 @@ export function CaptureFlow({ purchaseId }: Props) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string>();
   const [saved, setSaved] = useState<{ purchaseId: string; documentId: string }>();
+  const [sameFile, setSameFile] = useState<Purchase[]>([]);
   const hasPages = draft.pages.length > 0;
 
-  async function save() {
+  /** New purchases are checked for a file saved before; the user decides what to do (D-12). */
+  async function start() {
+    if (!purchaseId) {
+      const matches = await purchasesWithSameFile(await draftHash(draft)).catch(() => []);
+      if (matches.length > 0) return setSameFile(matches);
+    }
+    await save(purchaseId);
+  }
+
+  async function save(target: string | undefined) {
+    setSameFile([]);
     setSaving(true);
     setSaveError(undefined);
     try {
-      const result = await saveDraft({ draft, type, purchaseId });
+      const result = await saveDraft({ draft, type, purchaseId: target });
       // A document added to an existing purchase goes straight back to it.
-      if (purchaseId) router.push(`/p/${purchaseId}`);
+      if (target) router.push(`/p/${target}`);
       else setSaved(result);
     } catch (error) {
       console.error("Could not save document", error);
@@ -67,9 +80,18 @@ export function CaptureFlow({ purchaseId }: Props) {
           </p>
           <PageList pages={draft.pages} dispatch={dispatch} />
           <DocumentTypePicker value={type} onChange={setType} />
+          {sameFile.length > 0 && (
+            <DuplicateWarning
+              reason="same-file"
+              matches={sameFile}
+              onSaveAnyway={() => save(undefined)}
+              onAddToExisting={(existing) => save(existing.id)}
+              onCancel={() => setSameFile([])}
+            />
+          )}
           <button
             type="button"
-            onClick={save}
+            onClick={start}
             disabled={saving}
             className="rounded-card bg-primary px-6 py-4 text-lg font-semibold text-on-primary hover:bg-primary-hover disabled:opacity-60"
           >

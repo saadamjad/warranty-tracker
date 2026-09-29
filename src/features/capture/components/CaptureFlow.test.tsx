@@ -41,4 +41,18 @@ describe("CaptureFlow", () => {
     fireEvent.change(screen.getByLabelText("Choose file"), { target: { files: [doc] } });
     expect((await screen.findByRole("alert")).textContent).toMatch(/isn't a photo or PDF/);
   });
+
+  it("warns when the same file was saved before and can add it to that purchase (AC-17)", async () => {
+    const { saveDraft } = await import("../lib/saveDraft");
+    const { draftReducer, emptyDraft } = await import("../lib/draft");
+    const first = await saveDraft({ draft: draftReducer(emptyDraft, { type: "add", files: [photo], makeId: () => "x" }), type: "receipt" });
+
+    render(<CaptureFlow />);
+    fireEvent.change(screen.getByLabelText("Choose file"), { target: { files: [photo] } });
+    fireEvent.click(await screen.findByRole("button", { name: "Continue" }));
+    expect(await screen.findByRole("heading", { name: "You've saved this file before" })).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: /instead$/ }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith(`/p/${first.purchaseId}`));
+    expect(await listDocuments(first.purchaseId)).toHaveLength(2);
+  });
 });
