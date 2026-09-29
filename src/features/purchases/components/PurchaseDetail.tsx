@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { DocumentsSection } from "@/features/documents/components/DocumentsSection";
 import type { Purchase, PurchaseFields } from "@/lib/db/types";
 import { displayTitle } from "../lib/display";
 import { PURCHASE_FIELDS } from "../lib/fieldConfig";
@@ -64,6 +65,8 @@ function PurchaseForm({ purchase }: { purchase: Purchase }) {
           That change wasn&apos;t saved. Please try again.
         </p>
       )}
+
+      {!purchase.deletedAt && <DocumentsSection purchaseId={purchase.id} />}
 
       {PURCHASE_FIELDS.map(({ field, label, input }) => (
         <EditableField
