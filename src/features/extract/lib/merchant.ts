@@ -2,7 +2,7 @@ import type { Found } from "./types";
 
 // Top-of-receipt lines that are headings or boilerplate, not the shop's name.
 const NOT_NAME =
-  /\b(tax\s*invoice|sales\s*(tax\s*)?invoice|invoice|receipt|cash\s*memo|bill|welcome|thank|customer|copy|duplicate|date|time|tel|phone|ph|fax|mob(ile)?|email|www\.|https?:|ntn|strn|gst|vat|address|cashier)\b/i;
+  /\b(w[e3]lc[o0]me|warranty\s*card|tax\s*invoice|sales\s*(tax\s*)?invoice|invoice|receipt|cash\s*memo|bill|thank|customer|copy|duplicate|date|time|tel|phone|ph|fax|mob(ile)?|email|www\.|https?:|ntn|strn|gst|vat|address|cashier)\b/i;
 
 /** The shop's name is usually one of the first readable lines. Always offered for checking. */
 export function findMerchant(text: string): Found | undefined {
