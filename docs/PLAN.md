@@ -14,7 +14,7 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 ## Phase 1 — Local core  [FR-01,02,03,11,12,15,16,23,30,32,45 · AC-1,3,8,18]
 - [x] Dexie schema `src/lib/db` (purchases, documents, pages blobs, warranties, outbox, meta)
 - [x] `features/purchases/lib`: create/update(fieldMeta source=user)/softDelete/restore/list/listDeleted/get + tests (D-29)
-- [ ] App shell + Home: promise line, Add Purchase button, search box, recent list, reminders strip
+- [x] App shell + Home: promise line, Add Purchase button, recent list, manual "Enter details myself" at `/add`
 - [ ] Purchase detail `/p/[id]`: all fields inline-editable, notes, docs list, rename title
 - [ ] Delete dialog: "This removes the purchase and its N documents. Recoverable for 30 days." (AC-18)
 
@@ -40,13 +40,13 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [ ] Warranty section: add many; start defaults to purchase date but independent; duration helper (1y/2y/custom)
 - [ ] `warrantyStatus(end, today)` → active / expiring (≤30d) / expired; badges; tests
 - [ ] Return deadline field + status
-- [ ] Reminder prefs (settings) + per-purchase toggle; in-app "Coming up" list on Home
+- [ ] Reminder prefs (settings) + per-purchase toggle; in-app "Coming up" strip on Home
 - [ ] Browser notification (if permitted, while app open) — email in Phase 10
 
 ## Phase 5 — Search  [FR-21,22 · EC-02 · AC-6,7]
 - [ ] MiniSearch index: title, product, model, serial, merchant, reference, notes, ocrText, year; fuzzy 0.2, prefix
 - [ ] Incremental index updates on save/delete; rebuild on load
-- [ ] Results show purchase + matched field/document snippet; tests for typos/partials
+- [ ] Search box on Home + `/search`; results show purchase + matched field/document snippet; tests for typos/partials
 
 ## Phase 6 — Duplicates  [FR-34 · EC-17,18 · AC-17]
 - [ ] sha256 of original file; same hash → warn; same merchant+date+amount → softer warn
