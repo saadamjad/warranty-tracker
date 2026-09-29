@@ -37,6 +37,7 @@
     "@aws-sdk/client-s3": "^3.1142.0",
     "@aws-sdk/s3-request-presigner": "^3.1142.0",
     "@prisma/client": "^6.19.3",
+    "@tesseract.js-data/eng": "^1.0.0",
     "date-fns": "^4.4.0",
     "dexie": "^4.4.6",
     "jszip": "^3.10.2",
