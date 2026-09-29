@@ -1,0 +1,213 @@
+// Server schema: backup/sync store only; the device is the primary store (D-15).
+// Every app table carries userId so repo.ts can scope all queries to the session user.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Auth.js (shape required by @auth/prisma-adapter) ----------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts     Account[]
+  sessions     Session[]
+  vaults       Vault[]
+  reminderPref ReminderPref?
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ---------- Vault ----------
+
+// One personal vault per user now; family sharing later (FR-44) without reshaping purchases.
+model Vault {
+  id        String   @id @default(cuid())
+  ownerId   String
+  createdAt DateTime @default(now())
+
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  purchases Purchase[]
+
+  @@index([ownerId])
+}
+
+// Ids below are client-generated uuids (records are born on the device).
+
+model Purchase {
+  id             String    @id
+  vaultId        String
+  userId         String
+  title          String?
+  productName    String?
+  model          String?
+  serial         String?
+  merchant       String?
+  purchaseDate   DateTime? @db.Date
+  amount         Decimal?  @db.Decimal(14, 2)
+  currency       String?
+  reference      String?
+  notes          String?
+  returnDeadline DateTime? @db.Date
+  /// Per-field { source: 'extracted' | 'user', confidence?, updatedAt } (D-17)
+  fieldMeta      Json      @default("{}")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime
+  deletedAt      DateTime?
+
+  vault      Vault      @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  documents  Document[]
+  warranties Warranty[]
+
+  @@index([userId, updatedAt])
+  @@index([vaultId])
+}
+
+enum DocumentType {
+  RECEIPT
+  INVOICE
+  WARRANTY
+  OTHER
+}
+
+model Document {
+  id           String       @id
+  purchaseId   String
+  userId       String
+  type         DocumentType @default(RECEIPT)
+  pageCount    Int
+  /// Storage keys per page, in page order (EC-01)
+  originalKeys String[]
+  enhancedKeys String[]
+  ocrText      String?
+  sha256       String
+  sizeBytes    Int
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+  deletedAt    DateTime?
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt])
+  @@index([userId, sha256])
+  @@index([purchaseId])
+}
+
+// Many per purchase (EC-28); dates independent of purchaseDate (EC-07).
+model Warranty {
+  id         String    @id
+  purchaseId String
+  userId     String
+  provider   String?
+  startDate  DateTime? @db.Date
+  endDate    DateTime? @db.Date
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime
+  deletedAt  DateTime?
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt])
+  @@index([purchaseId])
+}
+
+// ---------- Reminders ----------
+
+// Defaults per D-14 (30 days, optional final 7) and D-24 (return 3 days).
+model ReminderPref {
+  userId             String   @id
+  warrantyDaysBefore Int      @default(30)
+  finalDaysBefore    Int?     @default(7)
+  returnDaysBefore   Int      @default(3)
+  emailEnabled       Boolean  @default(true)
+  updatedAt          DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum ReminderKind {
+  WARRANTY
+  WARRANTY_FINAL
+  RETURN
+}
+
+// One row per sent reminder, so the daily cron is idempotent.
+model ReminderLog {
+  id       String       @id @default(cuid())
+  userId   String
+  targetId String
+  kind     ReminderKind
+  dueAt    DateTime
+  sentAt   DateTime     @default(now())
+
+  @@unique([targetId, kind, dueAt])
+  @@index([userId])
+}
+
+// ---------- Sync ----------
+
+enum ChangeOp {
+  UPSERT
+  DELETE
+}
+
+// Append-only change feed; clients pull with ?cursor=<last seq> (ARCHITECTURE: sync).
+model Change {
+  seq      BigInt   @id @default(autoincrement())
+  userId   String
+  vaultId  String
+  entity   String
+  entityId String
+  op       ChangeOp
+  at       DateTime @default(now())
+
+  @@index([userId, seq])
+}
