@@ -1,5 +1,5 @@
 import { fetchAccount } from "@/features/account/lib/authClient";
-import { getAccount, getSyncStatus, setAccount, setSyncStatus, switchAccount } from "./state";
+import { getAccount, getSyncStatus, setAccount, setCursor, setSyncStatus, setWatermark, switchAccount } from "./state";
 
 /**
  * Checks the sign-in with the server. An expired session keeps the account on this device
@@ -30,4 +30,11 @@ export async function signOut(): Promise<void> {
   if (!response.ok) throw new Error(`Sign out failed: ${response.status}`);
   await setAccount(null);
   await setSyncStatus({ phase: "idle" });
+}
+
+/** Deletes the account and its backup. Purchases on this device stay (BR-07). */
+export async function deleteAccountAndBackup(): Promise<void> {
+  const response = await fetch("/api/account", { method: "DELETE" });
+  if (!response.ok) throw new Error(`Account deletion failed: ${response.status}`);
+  await Promise.all([setAccount(null), setWatermark(""), setCursor("0"), setSyncStatus({ phase: "idle" })]);
 }
