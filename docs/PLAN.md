@@ -12,7 +12,7 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] git init, public GitHub repo, push
 
 ## Phase 1 — Local core  [FR-01,02,03,11,12,15,16,23,30,32,45 · AC-1,3,8,18]
-- [ ] Dexie schema `src/lib/db` (purchases, documents, pages blobs, warranties, outbox, meta)
+- [x] Dexie schema `src/lib/db` (purchases, documents, pages blobs, warranties, outbox, meta)
 - [ ] `features/purchases/lib`: create/update(fieldMeta source=user)/softDelete/restore/list/listDeleted/get + tests (D-29)
 - [ ] App shell + Home: promise line, Add Purchase button, search box, recent list, reminders strip
 - [ ] Purchase detail `/p/[id]`: all fields inline-editable, notes, docs list, rename title
