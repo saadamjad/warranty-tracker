@@ -144,3 +144,40 @@ export async function deleteAccount(userId: string): Promise<void> {
   const keys = documents.flatMap((document) => [...document.originalKeys, ...document.enhancedKeys]).filter(Boolean);
   if (keys.length) await deleteObjects(keys);
 }
+
+// ---- Scheduled jobs (not user-scoped: they run for everyone, from the cron route only) ----
+
+const PURGE_BATCH = 500;
+
+/**
+ * Permanently removes backup data deleted before `cutoff` (30 days, D-19): purchases with
+ * their documents and warranties, plus documents and warranties deleted on their own.
+ * Purchase removals go into each user's change feed so their devices drop them too.
+ */
+export async function purgeDeletedBefore(cutoff: Date): Promise<{ purchases: number; documents: number; warranties: number }> {
+  const purchases = await prisma.purchase.findMany({
+    where: { deletedAt: { lt: cutoff } },
+    select: { id: true, userId: true, vaultId: true, documents: { select: { originalKeys: true, enhancedKeys: true } } },
+    take: PURGE_BATCH,
+  });
+  const documents = await prisma.document.findMany({
+    where: { deletedAt: { lt: cutoff }, purchase: { deletedAt: null } },
+    select: { id: true, originalKeys: true, enhancedKeys: true },
+    take: PURGE_BATCH,
+  });
+
+  const [, , , warranties] = await prisma.$transaction([
+    prisma.purchase.deleteMany({ where: { id: { in: purchases.map((p) => p.id) } } }),
+    prisma.change.createMany({
+      data: purchases.map((p) => ({ userId: p.userId, vaultId: p.vaultId, entity: "purchase", entityId: p.id, op: "DELETE" as const })),
+    }),
+    prisma.document.deleteMany({ where: { id: { in: documents.map((d) => d.id) } } }),
+    prisma.warranty.deleteMany({ where: { deletedAt: { lt: cutoff } } }),
+  ]);
+
+  const keys = [...purchases.flatMap((p) => p.documents), ...documents]
+    .flatMap((document) => [...document.originalKeys, ...document.enhancedKeys])
+    .filter(Boolean);
+  if (keys.length) await deleteObjects(keys);
+  return { purchases: purchases.length, documents: documents.length, warranties: warranties.count };
+}

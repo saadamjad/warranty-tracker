@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { DocumentWire, PurchaseWire, PushBody, WarrantyWire } from "@/lib/sync/schema";
 import { prisma } from "./prisma";
-import { ForbiddenRecordError, deleteAccount, pullChanges, pushChanges } from "./repo";
+import { ForbiddenRecordError, deleteAccount, pullChanges, pushChanges, purgeDeletedBefore } from "./repo";
 
 const deleteObjects = vi.fn(async (keys: string[]) => void keys);
 vi.mock("./storage", async (original) => ({
@@ -113,5 +113,23 @@ describe("repo sync (Postgres)", () => {
     expect(await prisma.change.count({ where: { userId: me } })).toBe(0);
     expect(await prisma.purchase.count({ where: { userId: them } })).toBe(1);
     expect(deleteObjects.mock.calls[0][0]).toHaveLength(2);
+  });
+
+  it("purges only data deleted before the cutoff and tells devices (D-19)", async () => {
+    const me = await user();
+    const old = purchase({ deletedAt: "2026-01-01T00:00:00.000Z" });
+    const recent = purchase({ deletedAt: "2026-03-01T00:00:00.000Z" });
+    const live = purchase();
+    const oldDoc = document(live.id, { deletedAt: "2026-01-01T00:00:00.000Z" });
+    await push(me, { purchases: [old, recent, live], documents: [document(old.id), oldDoc, document(live.id)] });
+    const before = await pullChanges(me, BigInt(0));
+
+    const result = await purgeDeletedBefore(new Date("2026-02-01T00:00:00.000Z"));
+
+    expect(result).toEqual({ purchases: 1, documents: 1, warranties: 0 });
+    expect((await prisma.purchase.findMany({ where: { userId: me } })).map((p) => p.id).sort()).toEqual([live.id, recent.id].sort());
+    expect(await prisma.document.count({ where: { userId: me } })).toBe(1);
+    expect((await pullChanges(me, BigInt(before.cursor))).purged).toEqual([old.id]);
+    expect(deleteObjects.mock.calls[0][0]).toHaveLength(4);
   });
 });
