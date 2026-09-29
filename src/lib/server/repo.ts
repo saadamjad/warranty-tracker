@@ -128,3 +128,19 @@ export async function documentKeys(userId: string, documentId: string) {
     select: { originalKeys: true, enhancedKeys: true, mimeTypes: true },
   });
 }
+
+/**
+ * Deletes the account and everything backed up for it: records, change feed, reminder log,
+ * sign-in data and stored files (BR-07). Devices keep their own copy unless the user wipes it.
+ */
+export async function deleteAccount(userId: string): Promise<void> {
+  const documents = await prisma.document.findMany({ where: { userId }, select: { originalKeys: true, enhancedKeys: true } });
+  await prisma.$transaction([
+    prisma.change.deleteMany({ where: { userId } }),
+    prisma.reminderLog.deleteMany({ where: { userId } }),
+    // Cascades to sessions, sign-in accounts, vaults, purchases, documents, warranties, reminder settings.
+    prisma.user.delete({ where: { id: userId } }),
+  ]);
+  const keys = documents.flatMap((document) => [...document.originalKeys, ...document.enhancedKeys]).filter(Boolean);
+  if (keys.length) await deleteObjects(keys);
+}

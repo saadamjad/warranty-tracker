@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { DocumentWire, PurchaseWire, PushBody, WarrantyWire } from "@/lib/sync/schema";
 import { prisma } from "./prisma";
-import { ForbiddenRecordError, pullChanges, pushChanges } from "./repo";
+import { ForbiddenRecordError, deleteAccount, pullChanges, pushChanges } from "./repo";
 
 const deleteObjects = vi.fn(async (keys: string[]) => void keys);
 vi.mock("./storage", async (original) => ({
@@ -98,5 +98,20 @@ describe("repo sync (Postgres)", () => {
     const first = await pullChanges(me, BigInt(0), 2);
     const rest = await pullChanges(me, BigInt(first.cursor), 2);
     expect([first.purchases.length, first.hasMore, rest.purchases.length, rest.hasMore]).toEqual([2, true, 1, false]);
+  });
+
+  it("deletes an account with all its backed-up data and files, leaving others alone (BR-07)", async () => {
+    const [me, them] = [await user(), await user()];
+    const mine = purchase();
+    await push(me, { purchases: [mine], documents: [document(mine.id)], warranties: [warranty(mine.id)] });
+    await push(them, { purchases: [purchase()] });
+
+    await deleteAccount(me);
+
+    expect(await prisma.user.count({ where: { id: me } })).toBe(0);
+    expect(await prisma.purchase.count({ where: { userId: me } })).toBe(0);
+    expect(await prisma.change.count({ where: { userId: me } })).toBe(0);
+    expect(await prisma.purchase.count({ where: { userId: them } })).toBe(1);
+    expect(deleteObjects.mock.calls[0][0]).toHaveLength(2);
   });
 });
