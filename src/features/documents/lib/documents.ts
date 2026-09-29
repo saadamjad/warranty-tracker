@@ -57,6 +57,11 @@ export async function getPages(documentId: string): Promise<DocumentPage[]> {
   return db.pages.where("documentId").equals(documentId).sortBy("index");
 }
 
+/** Text read from the document, card numbers already removed; used by search (FR-21, EC-02). */
+export async function setDocumentText(id: string, ocrText: string): Promise<void> {
+  await db.documents.update(id, { ocrText, updatedAt: new Date().toISOString() });
+}
+
 export async function setDocumentType(id: string, type: DocumentType): Promise<void> {
   await db.documents.update(id, { type, updatedAt: new Date().toISOString() });
 }
