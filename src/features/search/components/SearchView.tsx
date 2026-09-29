@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useSearch } from "../lib/hooks";
 import { SearchBox } from "./SearchBox";
+import { purchaseHref, searchHref } from "@/lib/routes";
 
 export function SearchView({ initialQuery }: { initialQuery: string }) {
   const [query, setQuery] = useState(initialQuery);
@@ -12,7 +13,7 @@ export function SearchView({ initialQuery }: { initialQuery: string }) {
   function update(next: string) {
     setQuery(next);
     // Keeps the address shareable/back-button friendly without re-rendering the page.
-    window.history.replaceState(null, "", next ? `/search?q=${encodeURIComponent(next)}` : "/search");
+    window.history.replaceState(null, "", searchHref(next));
   }
 
   return (
@@ -34,7 +35,7 @@ function Results({ ready, query, hits }: { ready: boolean; query: string; hits: 
     <ul className="divide-y divide-line" aria-label="Search results">
       {hits.map((hit) => (
         <li key={hit.id}>
-          <Link href={`/p/${hit.id}`} className="block py-3 hover:bg-surface">
+          <Link href={purchaseHref(hit.id)} className="block py-3 hover:bg-surface">
             <span className="block font-medium">{hit.title}</span>
             <span className="block text-sm text-muted">
               {hit.field}: {hit.snippet}

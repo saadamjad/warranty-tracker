@@ -12,6 +12,7 @@ import { draftReducer, emptyDraft } from "../lib/draft";
 import { DraftError, draftHash, saveDraft } from "../lib/saveDraft";
 import { CaptureButtons } from "./CaptureButtons";
 import { PageList } from "./PageList";
+import { purchaseHref } from "@/lib/routes";
 
 type Props = { /** Adding a document to an existing purchase (FR-36). */ purchaseId?: string };
 
@@ -41,7 +42,7 @@ export function CaptureFlow({ purchaseId }: Props) {
     try {
       const result = await saveDraft({ draft, type, purchaseId: target });
       // A document added to an existing purchase goes straight back to it.
-      if (target) router.push(`/p/${target}`);
+      if (target) router.push(purchaseHref(target));
       else setSaved(result);
     } catch (error) {
       console.error("Could not save document", error);
@@ -55,7 +56,7 @@ export function CaptureFlow({ purchaseId }: Props) {
   }
 
   if (saved) {
-    return <ReadAndReview {...saved} onDone={(id) => router.push(`/p/${id}`)} />;
+    return <ReadAndReview {...saved} onDone={(id) => router.push(purchaseHref(id))} />;
   }
 
   const message = saveError ?? draft.message;

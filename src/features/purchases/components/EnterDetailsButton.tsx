@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createPurchase } from "../lib/purchases";
+import { purchaseHref } from "@/lib/routes";
 
 /** Manual path that always works, with or without a document (FR-09, FR-46). */
 export function EnterDetailsButton() {
@@ -13,7 +14,7 @@ export function EnterDetailsButton() {
     setState("saving");
     try {
       const purchase = await createPurchase();
-      router.push(`/p/${purchase.id}`);
+      router.push(purchaseHref(purchase.id));
     } catch (error) {
       console.error("Could not create purchase", error);
       setState("failed");

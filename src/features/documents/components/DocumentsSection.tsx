@@ -7,6 +7,7 @@ import { DOCUMENT_TYPE_LABELS, removeDocument, setDocumentType } from "../lib/do
 import { useDocuments } from "../lib/hooks";
 import { DocumentTypePicker } from "./DocumentTypePicker";
 import { DocumentViewer } from "./DocumentViewer";
+import { addDocumentHref } from "@/lib/routes";
 
 /** Every document of a purchase in one place (FR-13, FR-23, AC-5). */
 export function DocumentsSection({ purchaseId }: { purchaseId: string }) {
@@ -23,7 +24,7 @@ export function DocumentsSection({ purchaseId }: { purchaseId: string }) {
       {documents.status === "ready" &&
         documents.value.map((document) => <DocumentItem key={document.id} document={document} />)}
       <Link
-        href={`/add?to=${purchaseId}`}
+        href={addDocumentHref(purchaseId)}
         className="self-start rounded-card border border-line px-4 py-2 font-medium hover:bg-surface"
       >
         + Add document

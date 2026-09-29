@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { displayTitle, purchaseSummary } from "../lib/display";
 import { usePurchases } from "../lib/hooks";
+import { purchaseHref } from "@/lib/routes";
 
 export function RecentPurchases() {
   const purchases = usePurchases();
@@ -40,7 +41,7 @@ function RecentPurchasesBody({ result }: { result: ReturnType<typeof usePurchase
     <ul className="mt-3 divide-y divide-line">
       {result.value.map((purchase) => (
         <li key={purchase.id}>
-          <Link href={`/p/${purchase.id}`} className="block py-3 hover:bg-surface">
+          <Link href={purchaseHref(purchase.id)} className="block py-3 hover:bg-surface">
             <span className="block font-medium">{displayTitle(purchase)}</span>
             <span className="block text-sm text-muted">{purchaseSummary(purchase)}</span>
           </Link>
