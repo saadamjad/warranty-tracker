@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { RecentPurchases } from "@/features/purchases/components/RecentPurchases";
+import { ComingUp } from "@/features/reminders/components/ComingUp";
 
 export default function Home() {
   return (
@@ -15,6 +16,8 @@ export default function Home() {
       >
         + Add Purchase
       </Link>
+
+      <ComingUp />
 
       <RecentPurchases />
 
