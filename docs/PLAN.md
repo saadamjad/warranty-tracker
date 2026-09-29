@@ -70,10 +70,10 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] Verified with two real browser devices on Postgres + S3Mock: guest capture → sign in → backup with files → restore on second device (image renders) → edit syncs back → delete forever purges both
 
 ## Phase 9 — Export & deletion  [FR-31 · BR-07 · AC-18,19]
-- [ ] Client export (works offline): ZIP of originals + purchases.csv + purchases.json (jszip)
-- [ ] Account deletion (server data + files) with clear confirmation; local wipe option
-- [ ] Local 30-day purge of deleted items on app load (D-29)
-- [ ] Cron purge of soft-deleted rows/files >30 days
+- [x] Client export (works offline): ZIP of originals + purchases.csv + purchases.json (jszip)
+- [x] Account deletion (server data + files) with clear confirmation; local wipe option
+- [x] Local 30-day purge of deleted items on app load (D-29)
+- [x] Cron purge of soft-deleted rows/files >30 days
 
 ## Phase 10 — Reminder emails & trust
 - [ ] `/api/cron/reminders` daily (Vercel cron, CRON_SECRET), idempotent via ReminderLog
