@@ -51,6 +51,9 @@ function PurchaseForm({ purchase }: { purchase: Purchase }) {
     <article className="flex flex-col gap-5">
       {purchase.deletedAt && <DeletedBanner id={purchase.id} />}
 
+      {/* The editable name below is the visual heading; this gives screen readers one too. */}
+      <h1 className="sr-only">{displayTitle(purchase)}</h1>
+
       <label className="block">
         <span className="sr-only">Purchase name</span>
         <input
