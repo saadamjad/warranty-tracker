@@ -76,8 +76,8 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] Cron purge of soft-deleted rows/files >30 days
 
 ## Phase 10 — Reminder emails & trust
-- [ ] `/api/cron/reminders` daily (Vercel cron, CRON_SECRET), idempotent via ReminderLog
-- [ ] `/privacy` page answering SPEC §7 questions; links from Home footer and backup prompt
+- [x] `/api/cron/reminders` daily (Vercel cron, CRON_SECRET), idempotent via ReminderLog; one email per person per day; settings sent with backup; "Email me reminders" switch
+- [x] `/privacy` page answering SPEC §7 questions; links from Home footer and backup prompt
 
 ## Phase 11 — Hardening & launch
 - [ ] AC-1..20 checklist (automated where possible, rest manual) all pass, incl. delete → Recently Deleted → restore
