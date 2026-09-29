@@ -16,6 +16,8 @@ const schema = z.object({
   SMTP_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().default("Purchase Vault <no-reply@example.com>"),
   CRON_SECRET: z.string().optional(),
+  /** Public address used in email links. */
+  APP_URL: z.url().default("http://localhost:3000"),
 });
 
 export type ServerEnv = z.infer<typeof schema>;
