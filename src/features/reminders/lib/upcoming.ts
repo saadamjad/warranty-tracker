@@ -44,10 +44,10 @@ export function upcomingDeadlines(purchases: Purchase[], warranties: Warranty[],
 }
 
 /**
- * The single reminder due now for an item, or none. Keys are stable so each one is shown
+ * The reminder due now for an item. Keys are stable so each one is shown
  * once: first warranty reminder, the optional final one, and the return reminder (D-14, D-24).
  */
-export function reminderKey(item: Upcoming, prefs: ReminderPrefs): string | undefined {
+export function reminderKey(item: Upcoming, prefs: ReminderPrefs): string {
   if (item.kind === "return") return `return:${item.targetId}:${item.date}`;
   const final = prefs.finalDaysBefore;
   if (final !== null && item.daysLeft <= final) return `warranty-final:${item.targetId}:${item.date}`;
