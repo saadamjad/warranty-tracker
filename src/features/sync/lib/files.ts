@@ -1,21 +1,10 @@
 import { db } from "@/lib/db";
 import type { DocumentPage, VaultDocument } from "@/lib/db/types";
 import type { FileUrl, UploadUrlBody } from "@/lib/sync/files";
+import { SyncHttpError, postJson } from "./http";
 
 // Page files travel straight between the device and storage via short-lived URLs;
 // the app server never handles file bytes.
-
-export class SyncHttpError extends Error {
-  constructor(readonly status: number) {
-    super(`Backup request failed with ${status}`);
-  }
-}
-
-async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  if (!response.ok) throw new SyncHttpError(response.status);
-  return response.json() as Promise<T>;
-}
 
 /** Uploads files of documents whose details are backed up but whose files aren't yet. */
 export async function uploadPendingFiles(): Promise<void> {
