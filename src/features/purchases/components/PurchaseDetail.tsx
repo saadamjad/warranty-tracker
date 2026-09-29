@@ -64,7 +64,7 @@ function PurchaseForm({ purchase }: { purchase: Purchase }) {
         />
       </label>
 
-      <BackupStatus />
+      <BackupStatus purchaseId={purchase.id} />
 
       {saveFailed && (
         <p role="alert" className="text-danger">

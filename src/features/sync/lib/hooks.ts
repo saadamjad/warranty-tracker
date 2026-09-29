@@ -1,8 +1,20 @@
 "use client";
 
+import { useLiveQuery } from "@/lib/db/useLiveQuery";
+import { backupState } from "./pending";
+import { getAccount, getSyncStatus } from "./state";
 import type { BackupState } from "./status";
 
-/** Without an account everything is saved on this device only; phase 8 adds real backup states. */
-export function useBackupState(): BackupState {
-  return "device-only";
+/** Live backup state of this device, or of one purchase. */
+export function useBackupState(purchaseId?: string): BackupState {
+  const state = useLiveQuery(() => backupState(purchaseId), [purchaseId]);
+  return state.status === "ready" ? state.value : "device-only";
+}
+
+export function useAccount() {
+  return useLiveQuery(getAccount, []);
+}
+
+export function useSyncStatus() {
+  return useLiveQuery(getSyncStatus, []);
 }
