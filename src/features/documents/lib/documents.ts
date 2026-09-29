@@ -53,6 +53,11 @@ export async function listDocuments(purchaseId: string): Promise<VaultDocument[]
   return documents.filter((document) => !document.deletedAt);
 }
 
+/** Every live document, for building the search index. */
+export async function listAllDocuments(): Promise<VaultDocument[]> {
+  return db.documents.filter((document) => !document.deletedAt).toArray();
+}
+
 export async function getPages(documentId: string): Promise<DocumentPage[]> {
   return db.pages.where("documentId").equals(documentId).sortBy("index");
 }
