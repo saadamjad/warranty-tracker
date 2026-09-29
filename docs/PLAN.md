@@ -51,8 +51,8 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] Search box on Home + `/search`; results show purchase + matched field/document snippet; tests for typos/partials
 
 ## Phase 6 — Duplicates  [FR-34 · EC-17,18 · AC-17]
-- [ ] sha256 of original file; same hash → warn; same merchant+date+amount → softer warn
-- [ ] Dialog: Save anyway / Add to existing purchase / Cancel. Never deletes/merges automatically
+- [x] sha256 of original file; same hash → warn; same merchant+date+amount → softer warn
+- [x] Dialog: Save anyway / Add to existing purchase / Cancel. Never deletes/merges automatically
 
 ## Phase 7 — Offline / PWA  [FR-25..27 · EC-21 · AC-11,13]
 - [ ] `manifest.webmanifest`, icons, `public/sw.js` (cache app shell + Tesseract assets, network-first navigations)
