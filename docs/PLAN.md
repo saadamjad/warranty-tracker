@@ -30,12 +30,12 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] "Skip — enter details myself" always visible
 
 ## Phase 3 — Reading & review  [FR-08,09,10,46 · EC-06,19,25 · AC-2,14]
-- [ ] Self-host Tesseract assets in `public/tesseract/` (D-32)
-- [ ] Tesseract worker (lazy-loaded, progress "Reading your receipt…", timeout → manual path)
-- [ ] `features/extract/lib/parse.ts`: dates (many formats, reject ambiguous→candidates), amount+currency (total keywords, symbols, PKR/Rs/$/€/£ etc.), invoice/ref, serial/model, merchant (top lines), warranty period phrases; strip card-number patterns (rule 12); never assume currency (D-31)
-- [ ] Parser fixtures + tests (≥15 realistic receipts as text)
-- [ ] Review screen "We found these details": key fields only, low-confidence highlighted, candidate chips, empty stays empty
-- [ ] Save sets source=extracted for untouched fields, user for edited; re-extraction never touches user fields
+- [x] Self-host Tesseract assets in `public/tesseract/` (D-32)
+- [x] Tesseract worker (lazy-loaded, progress "Reading your receipt…", timeout → manual path)
+- [x] `features/extract/lib/parse.ts`: dates (many formats, reject ambiguous→candidates), amount+currency (total keywords, symbols, PKR/Rs/$/€/£ etc.), invoice/ref, serial/model, merchant (top lines), warranty period phrases; strip card-number patterns (rule 12); never assume currency (D-31)
+- [x] Parser fixtures + tests (≥15 realistic receipts as text)
+- [x] Review screen "We found these details": key fields only, low-confidence highlighted, candidate chips, empty stays empty
+- [x] Save sets source=extracted for untouched fields, user for edited; re-extraction never touches user fields
 
 ## Phase 4 — Warranty & returns  [FR-17..20 · EC-07,08,24,28 · AC-9,10]
 - [ ] Warranty section: add many; start defaults to purchase date but independent; duration helper (1y/2y/custom)

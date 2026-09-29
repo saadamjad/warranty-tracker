@@ -9,7 +9,7 @@ Decided (SPEC D-25). Do not swap or add alternatives without a new Decision in S
 | Styling | Tailwind CSS 4 | No component library; small plain UI |
 | Local store (primary) | Dexie 4 (IndexedDB) | Local-first, offline, stores file blobs (D-15) |
 | Search | MiniSearch 7 | Offline fuzzy/prefix search |
-| Receipt reading | Tesseract.js (Web Worker, lazy-loaded) + own `parse.ts` rules | Free, on-device, private (D-16) |
+| Receipt reading | Tesseract.js (Web Worker, lazy-loaded) + `@tesseract.js-data/eng` + own `parse.ts` rules | Free, on-device, private (D-16); assets self-hosted via `scripts/copy-vendor-assets.mjs` (D-32) |
 | PDF preview | pdfjs-dist (lazy) | Thumbnails + text from PDFs |
 | Dates | date-fns 4 | Tree-shakable, no locale magic |
 | Validation | zod 4 | Every API input |
