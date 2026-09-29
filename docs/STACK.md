@@ -19,8 +19,9 @@ Decided (SPEC D-25). Do not swap or add alternatives without a new Decision in S
 | File storage | `@aws-sdk/client-s3` + `s3-request-presigner` | S3Mock locally (D-34), Cloudflare R2 in prod; presigned URLs |
 | Email (prod) | Resend free tier via SMTP (nodemailer) | Magic links + reminder emails; dev prints to console |
 | Hosting | Vercel Hobby + Vercel Cron (daily) | Reminders + 30-day purge |
-| Tests | Vitest · fake-indexeddb · jsdom · @testing-library/react | Fast unit/component tests |
-| CI | GitHub Actions: lint → test → build | `.github/workflows/ci.yml` |
+| Tests | Vitest · fake-indexeddb · jsdom · @testing-library/react | Fast unit/component tests; `test:db` against Postgres |
+| Browser checks | playwright-core (installed Chrome) · axe-core | `npm run e2e`: acceptance, two-device sync, accessibility (D-36) |
+| CI | GitHub Actions: lint → typecheck → test → migrate + test:db → build | `.github/workflows/ci.yml` |
 
 **Not used:** state libraries (Redux/Zustand), UI kits, analytics SDKs, paid OCR/AI APIs, Firebase/Supabase, ORMs other than Prisma.
 

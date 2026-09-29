@@ -80,6 +80,6 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] `/privacy` page answering SPEC §7 questions; links from Home footer and backup prompt
 
 ## Phase 11 — Hardening & launch
-- [ ] AC-1..20 checklist (automated where possible, rest manual) all pass, incl. delete → Recently Deleted → restore
-- [ ] Accessibility (labels, focus, contrast), phone-width layout
+- [x] AC-1..20 all pass in Chrome via `npm run e2e` (incl. delete → Recently Deleted → restore), plus two-device sync
+- [x] Accessibility (labels, focus, contrast), phone-width layout: axe clean on every page, light and dark, 375 px
 - [ ] Deploy: Vercel + Neon + R2 + SMTP env; README setup steps
