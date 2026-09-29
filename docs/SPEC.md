@@ -122,6 +122,7 @@ no privacy claims stronger than reality. Each user's data isolated. Receipt read
 | D-30 | Every synced entity (Purchase, Document, Warranty) has `updatedAt` + `deletedAt`. Document content is append-only; type, page order and deletion are mutable |
 | D-31 | Currency comes from the receipt when detected; otherwise empty on review with the user's default currency offered as a suggestion chip. Never filled silently |
 | D-32 | Tesseract worker, core and English traineddata self-hosted under `public/tesseract/` and cached by the service worker; no CDN (offline reading) |
+| D-33 | Pages are static shells: ids travel in the query string (`/p?id=`, `/add?to=`, `/search?q=`) so one cached page opens any purchase offline |
 
 ## 9. Acceptance scenarios (must all pass for Definition of Done)
 AC-1 save receipt without account · AC-2 capture, review, fix one field, save · AC-3 save with missing fields ·

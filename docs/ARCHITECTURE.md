@@ -50,5 +50,5 @@ All tables indexed by `userId`. Photos are stored one page row per image (origin
 a PDF is stored once as a single page row, with `pageCount` holding its real page count. Client Dexie mirrors Purchase / Document (+ page blobs) / Warranty, plus `outbox` and `meta`.
 
 ## Routes
-- UI: `/` home · `/add` capture→review · `/p/[id]` detail/edit · `/search` · `/settings` (reminders, account, export, delete) · `/settings/deleted` (Recently Deleted, D-29) · `/privacy` · `/signin`
+- UI (static shells, ids in the query string, D-33): `/` home · `/add[?to=id]` capture→review · `/p?id=` detail/edit · `/search?q=` · `/settings` (reminders, account, export, delete) · `/settings/deleted` (Recently Deleted, D-29) · `/privacy` · `/signin`
 - API: `/api/auth/*` · `/api/sync/push` · `/api/sync/pull` · `/api/files/upload-url` · `/api/files/download-url` · `/api/export` · `/api/account` (DELETE) · `/api/cron/reminders` · `/api/cron/purge`
