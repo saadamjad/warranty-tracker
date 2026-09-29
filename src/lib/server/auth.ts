@@ -46,7 +46,9 @@ function authConfig(): NextAuthConfig {
         },
       });
 
-  const email = { ...provider, sendVerificationRequest: rateLimited(provider.sendVerificationRequest) };
+  // Nodemailer() keeps a user-supplied sender in `options`; the top-level one is the library default.
+  const send = provider.options?.sendVerificationRequest ?? provider.sendVerificationRequest;
+  const email = { ...provider, sendVerificationRequest: rateLimited(send) };
   // Auth.js reads user overrides from `options`; keep both in step.
   email.options = { ...provider.options, sendVerificationRequest: email.sendVerificationRequest };
 
