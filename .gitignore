@@ -42,3 +42,6 @@ next-env.d.ts
 
 # allow the env template
 !.env.example
+
+# copied from node_modules on install (scripts/copy-vendor-assets.mjs)
+/public/vendor/
