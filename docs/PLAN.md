@@ -55,9 +55,9 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] Dialog: Save anyway / Add to existing purchase / Cancel. Never deletes/merges automatically
 
 ## Phase 7 — Offline / PWA  [FR-25..27 · EC-21 · AC-11,13]
-- [ ] `manifest.webmanifest`, icons, `public/sw.js` (cache app shell + Tesseract assets, network-first navigations)
-- [ ] Status chip per purchase + global (wording SPEC §6)
-- [ ] Verify full flow in DevTools offline
+- [x] `manifest.webmanifest`, icons, `public/sw.js` (precache static shells + their assets, network-first navigations, cache-first build and reading files; D-33)
+- [x] Status chip per purchase + global (wording SPEC §6)
+- [x] Verify full flow offline in real Chrome (Playwright): add, manual fallback, save, list, typo search, edit, duplicate warning, on-device reading online and offline after first use
 
 ## Phase 8 — Accounts & sync  [FR-28,29 · D-03,04,17,18 · EC-22 · AC-12,13]
 - [ ] Auth.js: Email (dev console link; prod SMTP) + Google; Prisma adapter; `/signin`
