@@ -31,7 +31,8 @@ docs/                    SPEC, BUSINESS, STACK, ARCHITECTURE, PLAN
   v1 `TesseractExtractor` + `parse.ts` rules. A server extractor can plug in later behind the same interface.
 - **Field meta** `fieldMeta[field] = { source:'extracted'|'user', confidence?, updatedAt }`.
 - **Merge rule (D-17):** per field; `user` beats `extracted`; otherwise newer `updatedAt` wins. Documents are append-only.
-- **Soft delete** everywhere (`deletedAt`); tombstones sync; server purge after 30 days (D-19).
+- **Soft delete** everywhere (`deletedAt`); tombstones sync; restore from Recently Deleted clears `deletedAt` (D-29);
+  local purge of items >30 days on app load; server purge after 30 days (D-19).
 - **Guest → account (D-18):** upload everything local; if the account already has data, merge, never replace.
 - **Future-proof:** purchases belong to a `Vault` (one personal vault per user now; family sharing later).
 
@@ -39,14 +40,14 @@ docs/                    SPEC, BUSINESS, STACK, ARCHITECTURE, PLAN
 Auth.js tables (User, Account, Session, VerificationToken) +
 - `Vault{id, ownerId}`
 - `Purchase{id, vaultId, userId, title?, productName?, model?, serial?, merchant?, purchaseDate?, amount Decimal?, currency?, reference?, notes?, returnDeadline?, fieldMeta Json, updatedAt, deletedAt?}`
-- `Document{id, purchaseId, userId, type, pageCount, originalKeys[], enhancedKeys[], ocrText?, sha256, sizeBytes, createdAt, deletedAt?}`
+- `Document{id, purchaseId, userId, type, pageCount, originalKeys[], enhancedKeys[], ocrText?, sha256, sizeBytes, createdAt, updatedAt, deletedAt?}` (D-30)
 - `Warranty{id, purchaseId, userId, provider?, startDate?, endDate?, notes?, updatedAt, deletedAt?}`
 - `ReminderPref{userId, warrantyDaysBefore=30, finalDaysBefore=7?, returnDaysBefore=3, emailEnabled}` (D-14, D-24)
 - `ReminderLog{id, userId, targetId, kind, dueAt, sentAt}` (idempotent emails)
-- `Change{seq bigserial, userId, entity, entityId, op, at}` (sync cursor)
+- `Change{seq bigserial, userId, vaultId, entity, entityId, op, at}` (sync cursor)
 
 All tables indexed by `userId`. Client Dexie mirrors Purchase / Document (+ page blobs) / Warranty, plus `outbox` and `meta`.
 
 ## Routes
-- UI: `/` home · `/add` capture→review · `/p/[id]` detail/edit · `/search` · `/settings` (reminders, account, export, delete) · `/privacy` · `/signin`
+- UI: `/` home · `/add` capture→review · `/p/[id]` detail/edit · `/search` · `/settings` (reminders, account, export, delete) · `/settings/deleted` (Recently Deleted, D-29) · `/privacy` · `/signin`
 - API: `/api/auth/*` · `/api/sync/push` · `/api/sync/pull` · `/api/files/upload-url` · `/api/files/download-url` · `/api/export` · `/api/account` (DELETE) · `/api/cron/reminders` · `/api/cron/purge`

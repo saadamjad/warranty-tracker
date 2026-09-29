@@ -79,7 +79,7 @@ BR-16 retention via utility, no manipulation · BR-17 graceful failure · BR-18 
 extraction incomplete → show found + fill rest · wrong extraction → fix before/after save ·
 multiple possible values → offer choice, don't guess · unsupported file → say so + alternative ·
 no network → continue offline · sync delay → local save shown separately from cloud state ·
-duplicate → warn, never delete · delete mistake → soft delete (Recently Deleted UI later).
+duplicate → warn, never delete · delete mistake → soft delete, restorable from Recently Deleted for 30 days (D-29).
 
 ## 6. UX rules
 - Home: Add Purchase (primary), Search, recent purchases, warranty/return reminders. No charts/dashboards.
@@ -118,6 +118,10 @@ no privacy claims stronger than reality. Each user's data isolated. Receipt read
 | D-26 | Prisma 6 (not 7): no driver adapters/config file needed, proven with Auth.js adapter |
 | D-27 | npm + Node 20 LTS |
 | D-28 | Commits are small and logical: each PLAN task lands as several commits (types → lib + tests → UI → wiring → docs); every commit builds and passes tests |
+| D-29 | Recently Deleted in MVP: Settings lists soft-deleted purchases with days left; Restore or Delete forever (confirmed). Restore clears `deletedAt` on purchase + its documents/warranties and syncs as a normal update. Local items >30 days purged on app load; server purge per D-19 |
+| D-30 | Every synced entity (Purchase, Document, Warranty) has `updatedAt` + `deletedAt`. Document content is append-only; type, page order and deletion are mutable |
+| D-31 | Currency comes from the receipt when detected; otherwise empty on review with the user's default currency offered as a suggestion chip. Never filled silently |
+| D-32 | Tesseract worker, core and English traineddata self-hosted under `public/tesseract/` and cached by the service worker; no CDN (offline reading) |
 
 ## 9. Acceptance scenarios (must all pass for Definition of Done)
 AC-1 save receipt without account · AC-2 capture, review, fix one field, save · AC-3 save with missing fields ·

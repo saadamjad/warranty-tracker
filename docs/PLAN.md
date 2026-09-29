@@ -7,12 +7,13 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] Deps installed per `STACK.md`; scripts `test`, `test:watch`, `db:migrate`, `typecheck`
 - [ ] `docker-compose.yml` (postgres:16, minio) + `.env.example`
 - [ ] Prisma schema + first migration; `src/lib/server/{prisma,repo,storage,auth}.ts` skeletons
-- [ ] Vitest config (jsdom, fake-indexeddb setup); GitHub Actions: lint + test + build
+- [ ] Vitest config (jsdom, fake-indexeddb setup, `@/` alias); replace placeholder smoke test
+- [ ] CI: add typecheck step to existing `.github/workflows/ci.yml` (lint + typecheck + test + build)
 - [x] git init, public GitHub repo, push
 
 ## Phase 1 — Local core  [FR-01,02,03,11,12,15,16,23,30,32,45 · AC-1,3,8,18]
 - [ ] Dexie schema `src/lib/db` (purchases, documents, pages blobs, warranties, outbox, meta)
-- [ ] `features/purchases/lib`: create/update(fieldMeta source=user)/softDelete/list/get
+- [ ] `features/purchases/lib`: create/update(fieldMeta source=user)/softDelete/restore/list/listDeleted/get + tests (D-29)
 - [ ] App shell + Home: promise line, Add Purchase button, search box, recent list, reminders strip
 - [ ] Purchase detail `/p/[id]`: all fields inline-editable, notes, docs list, rename title
 - [ ] Delete dialog: "This removes the purchase and its N documents. Recoverable for 30 days." (AC-18)
@@ -28,8 +29,9 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [ ] "Skip — enter details myself" always visible
 
 ## Phase 3 — Reading & review  [FR-08,09,10,46 · EC-06,19,25 · AC-2,14]
+- [ ] Self-host Tesseract assets in `public/tesseract/` (D-32)
 - [ ] Tesseract worker (lazy-loaded, progress "Reading your receipt…", timeout → manual path)
-- [ ] `features/extract/lib/parse.ts`: dates (many formats, reject ambiguous→candidates), amount+currency (total keywords, symbols, PKR/Rs/$/€/£ etc.), invoice/ref, serial/model, merchant (top lines), warranty period phrases; strip card-number patterns (rule 12)
+- [ ] `features/extract/lib/parse.ts`: dates (many formats, reject ambiguous→candidates), amount+currency (total keywords, symbols, PKR/Rs/$/€/£ etc.), invoice/ref, serial/model, merchant (top lines), warranty period phrases; strip card-number patterns (rule 12); never assume currency (D-31)
 - [ ] Parser fixtures + tests (≥15 realistic receipts as text)
 - [ ] Review screen "We found these details": key fields only, low-confidence highlighted, candidate chips, empty stays empty
 - [ ] Save sets source=extracted for untouched fields, user for edited; re-extraction never touches user fields
@@ -66,6 +68,7 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 ## Phase 9 — Export & deletion  [FR-31 · BR-07 · AC-18,19]
 - [ ] Client export (works offline): ZIP of originals + purchases.csv + purchases.json (jszip)
 - [ ] Account deletion (server data + files) with clear confirmation; local wipe option
+- [ ] Recently Deleted `/settings/deleted`: restore / delete forever; local 30-day purge on load (D-29, AC-18)
 - [ ] Cron purge of soft-deleted rows/files >30 days
 
 ## Phase 10 — Reminder emails & trust
@@ -73,6 +76,6 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [ ] `/privacy` page answering SPEC §7 questions; links from Home footer and backup prompt
 
 ## Phase 11 — Hardening & launch
-- [ ] AC-1..20 checklist (automated where possible, rest manual) all pass
+- [ ] AC-1..20 checklist (automated where possible, rest manual) all pass, incl. delete → Recently Deleted → restore
 - [ ] Accessibility (labels, focus, contrast), phone-width layout
 - [ ] Deploy: Vercel + Neon + R2 + SMTP env; README setup steps
