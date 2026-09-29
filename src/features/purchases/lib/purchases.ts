@@ -26,10 +26,15 @@ export async function getPurchase(id: string): Promise<Purchase | undefined> {
 }
 
 export async function updatePurchase(id: string, edits: PurchaseFields): Promise<Purchase> {
+  return updatePurchaseWith(id, (current, now) => applyUserEdits(current, edits, now));
+}
+
+/** Read-modify-write in one transaction, so concurrent edits can't lose each other. */
+export async function updatePurchaseWith(id: string, change: (current: Purchase, now: string) => Purchase): Promise<Purchase> {
   return db.transaction("rw", db.purchases, async () => {
     const current = await db.purchases.get(id);
     if (!current) throw new Error(`Purchase ${id} not found`);
-    const next = applyUserEdits(current, edits, nowIso());
+    const next = change(current, nowIso());
     await db.purchases.put(next);
     return next;
   });
