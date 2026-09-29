@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useReducer, useState } from "react";
 import { DocumentTypePicker } from "@/features/documents/components/DocumentTypePicker";
+import { ReadAndReview } from "@/features/extract/components/ReadAndReview";
 import { EnterDetailsButton } from "@/features/purchases/components/EnterDetailsButton";
 import type { DocumentType } from "@/lib/db/types";
 import { draftReducer, emptyDraft } from "../lib/draft";
@@ -18,14 +19,17 @@ export function CaptureFlow({ purchaseId }: Props) {
   const [type, setType] = useState<DocumentType>(purchaseId ? "warranty" : "receipt");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string>();
+  const [saved, setSaved] = useState<{ purchaseId: string; documentId: string }>();
   const hasPages = draft.pages.length > 0;
 
   async function save() {
     setSaving(true);
     setSaveError(undefined);
     try {
-      const id = await saveDraft({ draft, type, purchaseId });
-      router.push(`/p/${id}`);
+      const result = await saveDraft({ draft, type, purchaseId });
+      // A document added to an existing purchase goes straight back to it.
+      if (purchaseId) router.push(`/p/${purchaseId}`);
+      else setSaved(result);
     } catch (error) {
       console.error("Could not save document", error);
       setSaveError(
@@ -37,7 +41,12 @@ export function CaptureFlow({ purchaseId }: Props) {
     }
   }
 
+  if (saved) {
+    return <ReadAndReview {...saved} onDone={() => router.push(`/p/${saved.purchaseId}`)} />;
+  }
+
   const message = saveError ?? draft.message;
+  const saveLabel = purchaseId ? "Add to purchase" : "Continue";
 
   return (
     <div className="flex flex-col gap-5">
@@ -64,7 +73,7 @@ export function CaptureFlow({ purchaseId }: Props) {
             disabled={saving}
             className="rounded-card bg-primary px-6 py-4 text-lg font-semibold text-on-primary hover:bg-primary-hover disabled:opacity-60"
           >
-            {saving ? "Saving…" : "Save"}
+            {saving ? "Saving…" : saveLabel}
           </button>
         </>
       )}
