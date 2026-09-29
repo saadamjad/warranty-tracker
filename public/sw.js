@@ -1,10 +1,10 @@
 // Offline support (FR-25, FR-26, D-33). Plain JS: served as-is from /sw.js.
 // Pages are static shells, so caching each once lets the app open offline for any purchase.
 
-const VERSION = "v1";
+const VERSION = "v2";
 const PAGES = `pages-${VERSION}`;
 const ASSETS = `assets-${VERSION}`;
-const SHELL = ["/", "/add", "/p", "/search", "/settings", "/settings/deleted"];
+const SHELL = ["/", "/add", "/p", "/search", "/settings", "/settings/deleted", "/privacy", "/signin"];
 const STATIC_ASSET = /\/_next\/static\/[^"'\s)\\]+/g;
 
 self.addEventListener("install", (event) => {
