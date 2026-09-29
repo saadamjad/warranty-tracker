@@ -18,6 +18,9 @@ export async function getReminderPrefs(): Promise<ReminderPrefs> {
   return { ...DEFAULT_REMINDER_PREFS, ...(stored?.value as Partial<ReminderPrefs> | undefined) };
 }
 
+/** Read-modify-write in one transaction so quick successive changes don't overwrite each other. */
 export async function setReminderPrefs(prefs: Partial<ReminderPrefs>): Promise<void> {
-  await db.meta.put({ key: KEY, value: { ...(await getReminderPrefs()), ...prefs } });
+  await db.transaction("rw", db.meta, async () => {
+    await db.meta.put({ key: KEY, value: { ...(await getReminderPrefs()), ...prefs } });
+  });
 }
