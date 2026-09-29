@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { RecentPurchases } from "@/features/purchases/components/RecentPurchases";
 import { ComingUp } from "@/features/reminders/components/ComingUp";
+import { SearchBox } from "@/features/search/components/SearchBox";
 
 export default function Home() {
   return (
@@ -16,6 +17,8 @@ export default function Home() {
       >
         + Add Purchase
       </Link>
+
+      <SearchBox />
 
       <ComingUp />
 
