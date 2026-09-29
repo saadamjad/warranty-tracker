@@ -10,3 +10,7 @@ globalThis.File = NodeFile as unknown as typeof File;
 
 // Testing Library only auto-cleans when Vitest globals are enabled; they aren't here.
 afterEach(cleanup);
+
+// jsdom has no object URLs; previews only need a stable string.
+URL.createObjectURL ??= () => "blob:test";
+URL.revokeObjectURL ??= () => {};
