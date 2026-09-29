@@ -1,4 +1,5 @@
 import { addDocument, type NewPage } from "@/features/documents/lib/documents";
+import { hashPages } from "@/features/documents/lib/hash";
 import { MAX_PAGES } from "@/features/documents/lib/limits";
 import { pdfPageCount } from "@/features/documents/lib/pdf";
 import { createPurchase } from "@/features/purchases/lib/purchases";
@@ -42,4 +43,9 @@ async function pdfPages(draft: Draft): Promise<{ pages: NewPage[]; pageCount?: n
     throw new DraftError(`This PDF has ${pageCount} pages; a document can have up to ${MAX_PAGES}. Save the pages you need as a shorter PDF or as photos.`);
   }
   return { pages: [{ original: file, mimeType: file.type }], pageCount };
+}
+
+/** Same hash addDocument will store, so a draft can be checked for duplicates before saving (D-12). */
+export function draftHash(draft: Draft): Promise<string> {
+  return hashPages(draft.pages.map((page) => page.file));
 }
