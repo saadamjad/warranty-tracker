@@ -23,8 +23,8 @@ export default function Home() {
 
       <footer className="mt-auto flex flex-col gap-2 text-sm text-muted">
         <p>Everything stays on this device unless you choose to back it up.</p>
-        <Link href="/settings/deleted" className="hover:underline">
-          Recently Deleted
+        <Link href="/settings" className="hover:underline">
+          Settings
         </Link>
       </footer>
     </main>
