@@ -117,6 +117,7 @@ no privacy claims stronger than reality. Each user's data isolated. Receipt read
 | D-25 | Tech stack is locked in `STACK.md`; changing it needs a new decision here |
 | D-26 | Prisma 6 (not 7): no driver adapters/config file needed, proven with Auth.js adapter |
 | D-27 | npm + Node 20 LTS |
+| D-28 | Commits are small and logical: each PLAN task lands as several commits (types → lib + tests → UI → wiring → docs); every commit builds and passes tests |
 
 ## 9. Acceptance scenarios (must all pass for Definition of Done)
 AC-1 save receipt without account · AC-2 capture, review, fix one field, save · AC-3 save with missing fields ·

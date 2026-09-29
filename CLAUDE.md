@@ -18,8 +18,8 @@ Read only what the current task needs. Don't restate these docs elsewhere; link 
 ## How to work
 1. Open `docs/PLAN.md`, take the first unchecked task of the lowest open phase.
 2. Read only the SPEC sections that task cites (IDs in brackets), plus ARCHITECTURE/STACK if relevant.
-3. Implement → add/adjust tests → `npm run lint && npm test && npm run build`.
-4. Tick the box in PLAN.md, commit (`feat(phase-N): …`). One task ≈ one commit.
+3. Implement → add/adjust tests → `npm run lint && npm run typecheck && npm test && npm run build`.
+4. Commit in small logical steps (`feat|fix|test|refactor|docs|chore(phase-N): …`, cite IDs); tick the box in PLAN.md when the task is done (D-28).
 5. If a requirement is unclear or conflicts, stop and ask the user; record the answer in SPEC §8 Decisions.
 
 ## Non-negotiable product rules

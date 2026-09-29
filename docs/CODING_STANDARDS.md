@@ -16,7 +16,9 @@ If a rule here conflicts with those, they win. Tech/dependency choices are gover
 ## 2. Scope
 - Keep changes focused on the task. Don't modify or refactor unrelated code.
 - If a refactor is required to do the task, say why in the commit body.
-- One PLAN.md task ≈ one commit (`feat(phase-N): …`), per `CLAUDE.md`. Each commit builds and passes tests.
+- Small logical commits (D-28): one PLAN task = several commits, each one reviewable unit
+  (`feat|fix|test|refactor|docs|chore(phase-N): …`, cite FR/EC/AC IDs). Each commit builds and passes tests.
+  Never pad commits or bundle unrelated changes.
 
 ## 3. Architecture & modularity
 - Single responsibility, feature-oriented folders (`src/features/<feature>/`), explicit dependencies, low coupling.
