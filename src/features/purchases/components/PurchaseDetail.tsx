@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { DocumentsSection } from "@/features/documents/components/DocumentsSection";
+import { ReturnSection } from "@/features/warranty/components/ReturnSection";
+import { WarrantySection } from "@/features/warranty/components/WarrantySection";
 import type { Purchase, PurchaseFields } from "@/lib/db/types";
 import { displayTitle } from "../lib/display";
 import { PURCHASE_FIELDS } from "../lib/fieldConfig";
@@ -78,7 +80,13 @@ function PurchaseForm({ purchase }: { purchase: Purchase }) {
         />
       ))}
 
-      {!purchase.deletedAt && <DeletePurchase id={purchase.id} />}
+      {!purchase.deletedAt && (
+        <>
+          <WarrantySection purchase={purchase} />
+          <ReturnSection purchase={purchase} />
+          <DeletePurchase id={purchase.id} />
+        </>
+      )}
     </article>
   );
 }
