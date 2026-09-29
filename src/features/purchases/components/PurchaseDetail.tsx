@@ -5,6 +5,7 @@ import { useState } from "react";
 import { DocumentsSection } from "@/features/documents/components/DocumentsSection";
 import { RemindersToggle } from "@/features/reminders/components/RemindersToggle";
 import { ReturnSection } from "@/features/warranty/components/ReturnSection";
+import { BackupStatus } from "@/features/sync/components/BackupStatus";
 import { WarrantySection } from "@/features/warranty/components/WarrantySection";
 import type { Purchase, PurchaseFields } from "@/lib/db/types";
 import { displayTitle } from "../lib/display";
@@ -62,6 +63,8 @@ function PurchaseForm({ purchase }: { purchase: Purchase }) {
           className="w-full rounded-card bg-transparent px-1 text-2xl font-bold placeholder:text-foreground hover:bg-surface focus:bg-surface"
         />
       </label>
+
+      <BackupStatus />
 
       {saveFailed && (
         <p role="alert" className="text-danger">

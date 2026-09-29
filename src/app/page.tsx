@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { OfflineNote } from "@/features/offline/components/OfflineNote";
 import { RecentPurchases } from "@/features/purchases/components/RecentPurchases";
 import { ComingUp } from "@/features/reminders/components/ComingUp";
 import { SearchBox } from "@/features/search/components/SearchBox";
+import { BackupStatus } from "@/features/sync/components/BackupStatus";
 
 export default function Home() {
   return (
@@ -9,7 +11,12 @@ export default function Home() {
       <header>
         <h1 className="text-3xl font-bold">Purchase Vault</h1>
         <p className="mt-2 text-lg text-muted">Save it now. Find it later.</p>
+        <div className="mt-2">
+          <BackupStatus />
+        </div>
       </header>
+
+      <OfflineNote />
 
       <Link
         href="/add"
