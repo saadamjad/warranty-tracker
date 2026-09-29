@@ -1,4 +1,4 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectsCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { serverEnv } from "./env";
 
@@ -43,4 +43,12 @@ export function uploadUrl(key: string, contentType: string): Promise<string> {
 export function downloadUrl(key: string): Promise<string> {
   const command = new GetObjectCommand({ Bucket: serverEnv().S3_BUCKET, Key: key });
   return getSignedUrl(s3(), command, { expiresIn: URL_TTL_SECONDS });
+}
+
+/** Removes stored files for good (delete forever, 30-day purge). S3 takes up to 1000 keys per call. */
+export async function deleteObjects(keys: string[]): Promise<void> {
+  for (let start = 0; start < keys.length; start += 1000) {
+    const batch = keys.slice(start, start + 1000).map((Key) => ({ Key }));
+    await s3().send(new DeleteObjectsCommand({ Bucket: serverEnv().S3_BUCKET, Delete: { Objects: batch, Quiet: true } }));
+  }
 }
