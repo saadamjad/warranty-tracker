@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Purchase } from "@/lib/db/types";
-import { UNTITLED, displayTitle, formatDate, purchaseSummary } from "./display";
+import { UNTITLED, deleteMessage, displayTitle, formatDate, purchaseSummary } from "./display";
 
 const purchase = (fields: Partial<Purchase>): Purchase => ({
   id: "p",
@@ -33,5 +33,13 @@ describe("purchaseSummary", () => {
     );
     expect(purchaseSummary(purchase({ merchant: "Metro", purchaseDate: "2026-03-03" }))).toBe("3 Mar 2026");
     expect(purchaseSummary(purchase({}))).toBe("");
+  });
+});
+
+describe("deleteMessage", () => {
+  it("says what happens to the documents and how to undo", () => {
+    expect(deleteMessage(0)).toBe("This removes the purchase. You can restore it from Recently Deleted for 30 days.");
+    expect(deleteMessage(1)).toMatch(/^This removes the purchase and its 1 document\./);
+    expect(deleteMessage(3)).toMatch(/its 3 documents\./);
   });
 });

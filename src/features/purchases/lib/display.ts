@@ -20,3 +20,12 @@ export function purchaseSummary(purchase: Purchase): string {
   // Merchant is already the title in this case.
   return parts.slice(1).filter(Boolean).join(" · ");
 }
+
+/** Delete confirmation copy that says exactly what happens to documents (FR-30, AC-18, D-29). */
+export function deleteMessage(documentCount: number): string {
+  const what =
+    documentCount === 0
+      ? "This removes the purchase."
+      : `This removes the purchase and its ${documentCount} ${documentCount === 1 ? "document" : "documents"}.`;
+  return `${what} You can restore it from Recently Deleted for 30 days.`;
+}
