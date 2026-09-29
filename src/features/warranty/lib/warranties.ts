@@ -1,3 +1,5 @@
+import { listDocuments } from "@/features/documents/lib/documents";
+import { findWarrantyMonths } from "@/features/extract/lib/labels";
 import { db } from "@/lib/db";
 import type { Warranty } from "@/lib/db/types";
 
@@ -40,4 +42,13 @@ export async function listDatedWarranties(): Promise<Warranty[]> {
 /** Blank text clears a field rather than storing an empty string. */
 function clean(fields: WarrantyFields): WarrantyFields {
   return Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, value?.trim() || undefined]));
+}
+
+/** Warranty length printed on any of the purchase's documents, e.g. 12 for "1 year warranty". */
+export async function warrantyMonthsOnReceipt(purchaseId: string): Promise<number | undefined> {
+  for (const document of await listDocuments(purchaseId)) {
+    const found = document.ocrText ? findWarrantyMonths(document.ocrText) : undefined;
+    if (found) return Number(found.value);
+  }
+  return undefined;
 }
