@@ -4,6 +4,8 @@ import type { VaultDocument } from "@/lib/db/types";
 import {
   countDocuments,
   createPurchase,
+  daysLeftToRestore,
+  deletePurchaseForever,
   getPurchase,
   listDeletedPurchases,
   listPurchases,
@@ -82,5 +84,24 @@ describe("purchases lib", () => {
     await restorePurchase(id);
     expect((await db.documents.get("removed-earlier"))?.deletedAt).toBe("2026-01-01T00:00:00.000Z");
     expect(await countDocuments(id)).toBe(1);
+  });
+
+  it("removes a purchase, its documents and pages for good", async () => {
+    const { id } = await createPurchase();
+    await db.documents.add(doc("d1", id));
+    await db.pages.add({ documentId: "d1", index: 0, original: new Blob(["x"]), mimeType: "image/png" });
+    await deletePurchaseForever(id);
+    expect(await getPurchase(id)).toBeUndefined();
+    expect(await db.documents.count()).toBe(0);
+    expect(await db.pages.count()).toBe(0);
+  });
+});
+
+describe("daysLeftToRestore", () => {
+  it("counts down from 30 days and stops at zero", () => {
+    const deletedAt = "2026-03-01T10:00:00.000Z";
+    expect(daysLeftToRestore(deletedAt, new Date("2026-03-01T12:00:00.000Z"))).toBe(30);
+    expect(daysLeftToRestore(deletedAt, new Date("2026-03-21T12:00:00.000Z"))).toBe(10);
+    expect(daysLeftToRestore(deletedAt, new Date("2026-05-01T12:00:00.000Z"))).toBe(0);
   });
 });

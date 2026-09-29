@@ -1,8 +1,12 @@
+import { differenceInCalendarDays, parseISO } from "date-fns";
 import { db } from "@/lib/db";
 import type { Purchase, PurchaseFields } from "@/lib/db/types";
 import { applyUserEdits } from "./fields";
 
 // Client data access for purchases; components call these, never Dexie directly.
+
+/** How long a deleted purchase stays restorable (D-19, D-29). */
+export const RESTORE_DAYS = 30;
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -79,4 +83,20 @@ export async function countDocuments(purchaseId: string): Promise<number> {
     .equals(purchaseId)
     .filter((d) => !d.deletedAt)
     .count();
+}
+
+/** Days until a deleted purchase is removed for good; never negative. */
+export function daysLeftToRestore(deletedAt: string, today: Date = new Date()): number {
+  return Math.max(0, RESTORE_DAYS - differenceInCalendarDays(today, parseISO(deletedAt)));
+}
+
+/** Permanent removal from this device, only from Recently Deleted after confirmation (D-29). */
+export async function deletePurchaseForever(id: string): Promise<void> {
+  await db.transaction("rw", [db.purchases, db.documents, db.pages, db.warranties], async () => {
+    const documentIds = await db.documents.where("purchaseId").equals(id).primaryKeys();
+    await db.pages.where("documentId").anyOf(documentIds).delete();
+    await db.documents.bulkDelete(documentIds);
+    await db.warranties.where("purchaseId").equals(id).delete();
+    await db.purchases.delete(id);
+  });
 }
