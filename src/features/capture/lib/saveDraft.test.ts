@@ -18,7 +18,7 @@ describe("saveDraft", () => {
   afterEach(() => Promise.all(db.tables.map((table) => table.clear())));
 
   it("saves photos as one document on a new purchase, keeping originals (AC-16)", async () => {
-    const purchaseId = await saveDraft({ draft: draftOf(photo(), photo()), type: "receipt" });
+    const { purchaseId } = await saveDraft({ draft: draftOf(photo(), photo()), type: "receipt" });
     const [document] = await listDocuments(purchaseId);
     expect(document.pageCount).toBe(2);
     const pages = await db.pages.where("documentId").equals(document.id).toArray();
@@ -34,7 +34,7 @@ describe("saveDraft", () => {
   });
 
   it("stores a PDF once with its page count", async () => {
-    const purchaseId = await saveDraft({ draft: draftOf(pdf()), type: "invoice" });
+    const { purchaseId } = await saveDraft({ draft: draftOf(pdf()), type: "invoice" });
     expect((await listDocuments(purchaseId))[0]).toMatchObject({ pageCount: 3, type: "invoice" });
   });
 

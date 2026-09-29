@@ -12,15 +12,15 @@ type SaveInput = { draft: Draft; type: DocumentType; /** Attach to this purchase
 
 /**
  * Saves the draft as one document. Readable copies are made first, so a failure never
- * leaves an empty purchase behind. Returns the purchase id.
+ * leaves an empty purchase behind.
  */
-export async function saveDraft({ draft, type, purchaseId }: SaveInput): Promise<string> {
+export async function saveDraft({ draft, type, purchaseId }: SaveInput): Promise<{ purchaseId: string; documentId: string }> {
   if (draft.pages.length === 0) throw new DraftError("Add a photo or file first.");
 
   const { pages, pageCount } = isPdfDraft(draft) ? await pdfPages(draft) : await photoPages(draft);
   const targetId = purchaseId ?? (await createPurchase()).id;
-  await addDocument({ purchaseId: targetId, type, pages, pageCount });
-  return targetId;
+  const document = await addDocument({ purchaseId: targetId, type, pages, pageCount });
+  return { purchaseId: targetId, documentId: document.id };
 }
 
 async function photoPages(draft: Draft): Promise<{ pages: NewPage[]; pageCount?: number }> {
