@@ -10,5 +10,5 @@
 
 - [ ] `npm run lint && npm test && npm run build` pass
 - [ ] Tests added or updated
-- [ ] Follows the product rules in CONTRIBUTING.md
+- [ ] Follows the product rules in CLAUDE.md
 - [ ] Screenshots included for UI changes

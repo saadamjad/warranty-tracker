@@ -1,6 +1,6 @@
 # SPEC — Personal Purchase Vault (condensed from BRD+FRS v1.0, 29 Sep 2026)
 
-Source of truth for *what* to build. `PLAN.md` says *how/when*. IDs are stable; cite them in code/commits.
+Source of truth for *what* to build. Why: `BUSINESS.md` · Tech: `STACK.md` · How: `ARCHITECTURE.md` · When: `PLAN.md`. IDs are stable; cite them in code/commits.
 
 ## 1. Product
 - Private personal vault for purchase proof: receipts, invoices, warranty cards, product info, photos.
@@ -113,6 +113,10 @@ no privacy claims stronger than reality. Each user's data isolated. Receipt read
 | D-21 | Auth: email magic link + Google. Email via free SMTP/Resend; dev prints link to console |
 | D-22 | English UI, any currency, default PKR (user-changeable) |
 | D-23 | Hosting: Vercel Hobby + Neon free + Cloudflare R2 free. Public GitHub repo |
+| D-24 | Return-deadline reminder default: 3 days before (user-changeable) |
+| D-25 | Tech stack is locked in `STACK.md`; changing it needs a new decision here |
+| D-26 | Prisma 6 (not 7): no driver adapters/config file needed, proven with Auth.js adapter |
+| D-27 | npm + Node 20 LTS |
 
 ## 9. Acceptance scenarios (must all pass for Definition of Done)
 AC-1 save receipt without account · AC-2 capture, review, fix one field, save · AC-3 save with missing fields ·

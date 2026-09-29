@@ -1,44 +1,14 @@
-# PLAN — Architecture & Build Checklist
+# PLAN — Build checklist
 
-Rules: `CLAUDE.md`. Requirements: `SPEC.md`. Tick `[x]` when a task is done, tested and committed.
-
-## Architecture (local-first)
-```
-Browser (primary store)                                Server (backup/sync, optional account)
- UI (Next.js App Router, Tailwind)                      Route handlers /api/*
-  └ features/*/lib  ─→ Dexie (IndexedDB)                  └ repo.ts (userId-scoped) ─→ Prisma ─→ Postgres
-       purchases, documents(blobs), outbox                  storage.ts ─→ S3 (MinIO / R2), presigned URLs
-  └ MiniSearch index (offline fuzzy search)              Auth.js v5 (magic link + Google)
-  └ Tesseract.js Web Worker (on-device reading)          Vercel cron (daily): reminder emails, 30-day purge
-  └ public/sw.js (offline app shell)
-  └ sync engine: push outbox → /api/sync/push, pull /api/sync/pull?cursor=
-```
-- **Extractor interface** `extract(pages: Blob[]) → { text, fields: Record<Field,{value,confidence,candidates}> }`.
-  v1 `TesseractExtractor` + `parse.ts` rules. Future server extractor plugs in behind the same interface.
-- **Field meta**: `fieldMeta[field] = { source:'extracted'|'user', confidence?, updatedAt }`. Merge rule (D-17):
-  user beats extracted; otherwise newer `updatedAt` wins, per field. Documents never overwritten.
-- **Soft delete** everywhere (`deletedAt`); tombstones sync; server purge after 30 days (D-19).
-- **Future-proof**: purchases belong to a `Vault` (one personal vault per user now → family sharing later).
-
-## Server schema (prisma/schema.prisma)
-Auth.js tables (User, Account, Session, VerificationToken) +
-`Vault{id, ownerId}` · `Purchase{id, vaultId, userId, title?, productName?, model?, serial?, merchant?, purchaseDate?, amount Decimal?, currency?, reference?, notes?, returnDeadline?, fieldMeta Json, updatedAt, deletedAt?}` ·
-`Document{id, purchaseId, userId, type, pageCount, originalKeys[], enhancedKeys[], ocrText?, sha256, sizeBytes, createdAt, deletedAt?}` ·
-`Warranty{id, purchaseId, userId, provider?, startDate?, endDate?, notes?, updatedAt, deletedAt?}` ·
-`ReminderPref{userId, warrantyDaysBefore=30, finalDaysBefore=7?, returnDaysBefore=3, emailEnabled}` ·
-`ReminderLog{id, userId, targetId, kind, dueAt, sentAt}` · `Change{seq bigserial, userId, entity, entityId, op, at}` (sync cursor).
-All tables indexed by `userId`. Client Dexie mirrors Purchase/Document(+blobs)/Warranty + `outbox` + `meta`.
-
-## Routes
-UI: `/` home · `/add` capture→review · `/p/[id]` detail/edit · `/search` · `/settings` (reminders, account, export, delete) · `/privacy` (plain-language trust page) · `/signin`.
-API: `/api/auth/*` · `/api/sync/push` · `/api/sync/pull` · `/api/files/upload-url` · `/api/files/download-url` · `/api/export` · `/api/account` (DELETE) · `/api/cron/reminders` · `/api/cron/purge`.
+WHEN things get built. Rules: `CLAUDE.md` · What: `SPEC.md` · How: `ARCHITECTURE.md` · Tech: `STACK.md`.
+Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 
 ## Phase 0 — Setup
-- [ ] Deps installed (prisma@6, @prisma/client@6, vitest, fake-indexeddb, @types/nodemailer); scripts `test`, `db:migrate`
+- [x] Deps installed per `STACK.md`; scripts `test`, `test:watch`, `db:migrate`, `typecheck`
 - [ ] `docker-compose.yml` (postgres:16, minio) + `.env.example`
 - [ ] Prisma schema + first migration; `src/lib/server/{prisma,repo,storage,auth}.ts` skeletons
-- [ ] Vitest config; GitHub Actions: lint + test + build
-- [ ] git init, public GitHub repo, push
+- [ ] Vitest config (jsdom, fake-indexeddb setup); GitHub Actions: lint + test + build
+- [x] git init, public GitHub repo, push
 
 ## Phase 1 — Local core  [FR-01,02,03,11,12,15,16,23,30,32,45 · AC-1,3,8,18]
 - [ ] Dexie schema `src/lib/db` (purchases, documents, pages blobs, warranties, outbox, meta)
