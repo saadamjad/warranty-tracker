@@ -15,8 +15,9 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] Dexie schema `src/lib/db` (purchases, documents, pages blobs, warranties, outbox, meta)
 - [x] `features/purchases/lib`: create/update(fieldMeta source=user)/softDelete/restore/list/listDeleted/get + tests (D-29)
 - [x] App shell + Home: promise line, Add Purchase button, recent list, manual "Enter details myself" at `/add`
-- [ ] Purchase detail `/p/[id]`: all fields inline-editable, notes, docs list, rename title
-- [ ] Delete dialog: "This removes the purchase and its N documents. Recoverable for 30 days." (AC-18)
+- [x] Purchase detail `/p/[id]`: all fields inline-editable, notes, rename title (documents list lands with Phase 2)
+- [x] Delete dialog: "This removes the purchase and its N documents. You can restore it from Recently Deleted for 30 days." (AC-18)
+- [x] Recently Deleted `/settings/deleted`: restore / delete forever (D-29) — pulled forward so the delete promise holds
 
 ## Phase 2 — Capture & documents  [FR-04..07,13,14,24,35,36 · EC-01,03,11–16,20 · AC-4,5,15,16]
 - [ ] `/add`: Take photo (camera input) / Choose file (image, PDF); add more pages; reorder/remove pages
@@ -24,7 +25,7 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [ ] Camera denied/unavailable → explain + upload/manual fallback
 - [ ] Image pipeline (canvas): orientation, grayscale/contrast, crop-to-content, manual rotate; keep original
 - [ ] PDF: store as-is, render first page thumbnail (pdf.js lazy) for preview/reading
-- [ ] Document type picker (default Receipt), "Add document" on existing purchase
+- [ ] Document type picker (default Receipt), documents list + "Add document" on existing purchase
 - [ ] In-context viewer (original ⇄ enhanced toggle, pages)
 - [ ] "Skip — enter details myself" always visible
 
@@ -68,7 +69,7 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 ## Phase 9 — Export & deletion  [FR-31 · BR-07 · AC-18,19]
 - [ ] Client export (works offline): ZIP of originals + purchases.csv + purchases.json (jszip)
 - [ ] Account deletion (server data + files) with clear confirmation; local wipe option
-- [ ] Recently Deleted `/settings/deleted`: restore / delete forever; local 30-day purge on load (D-29, AC-18)
+- [ ] Local 30-day purge of deleted items on app load (D-29)
 - [ ] Cron purge of soft-deleted rows/files >30 days
 
 ## Phase 10 — Reminder emails & trust
