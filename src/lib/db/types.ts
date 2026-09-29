@@ -55,6 +55,8 @@ export type VaultDocument = SyncedRecord & {
   uploadedAt?: string;
   /** Device-only: restored record whose files haven't downloaded yet (FR-29). */
   pagesMissing?: boolean;
+  /** Device-only: page files as the backup knows them, for documents restored without pages. */
+  remoteFiles?: { index: number; mimeType: string; hasEnhanced: boolean }[];
 };
 
 /** File content is kept apart from document rows so lists never load blobs. */
