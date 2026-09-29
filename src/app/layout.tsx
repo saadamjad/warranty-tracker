@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ReminderNotifier } from "@/features/reminders/components/ReminderNotifier";
 import "./globals.css";
@@ -16,7 +16,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Purchase Vault",
   description: "Save it now. Find it later.",
+  appleWebApp: { capable: true, title: "Vault", statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
 };
+
+export const viewport: Viewport = { themeColor: "#1d4ed8" };
 
 export default function RootLayout({
   children,
