@@ -6,7 +6,7 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 ## Phase 0 — Setup
 - [x] Deps installed per `STACK.md`; scripts `test`, `test:watch`, `db:migrate`, `typecheck`
 - [x] `docker-compose.yml` (postgres:16, minio) + `.env.example`
-- [ ] Prisma schema + first migration; `src/lib/server/{prisma,repo,storage,auth}.ts` skeletons
+- [x] Prisma schema + first migration; `src/lib/server/{prisma,repo,storage,auth}.ts` skeletons
 - [x] Vitest config (jsdom, fake-indexeddb setup, `@/` alias); replace placeholder smoke test
 - [x] CI: add typecheck step to existing `.github/workflows/ci.yml` (lint + typecheck + test + build)
 - [x] git init, public GitHub repo, push
