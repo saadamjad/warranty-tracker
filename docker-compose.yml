@@ -7,33 +7,23 @@ services:
       POSTGRES_PASSWORD: vault
       POSTGRES_DB: vault
     ports:
-      - "5432:5432"
+      # 5433 on the host so it never clashes with a locally installed Postgres.
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  minio:
-    image: minio/minio
-    command: server /data --console-address ":9001"
+  # S3-compatible storage for dev (D-34): MinIO images are no longer published on Docker Hub.
+  s3:
+    image: adobe/s3mock:4.10.0
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS: vault-documents
+      COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT: "true"
+      COM_ADOBE_TESTING_S3MOCK_STORE_ROOT: /data
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9000:9090"
     volumes:
-      - miniodata:/data
-
-  # Creates the documents bucket once MinIO is up, then exits.
-  minio-init:
-    image: minio/mc
-    depends_on:
-      - minio
-    entrypoint: >
-      /bin/sh -c "
-      until mc alias set local http://minio:9000 minioadmin minioadmin; do sleep 1; done;
-      mc mb --ignore-existing local/vault-documents
-      "
+      - s3data:/data
 
 volumes:
   pgdata:
-  miniodata:
+  s3data:
