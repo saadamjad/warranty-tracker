@@ -38,11 +38,12 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] Save sets source=extracted for untouched fields, user for edited; re-extraction never touches user fields
 
 ## Phase 4 — Warranty & returns  [FR-17..20 · EC-07,08,24,28 · AC-9,10]
-- [ ] Warranty section: add many; start defaults to purchase date but independent; duration helper (1y/2y/custom)
-- [ ] `warrantyStatus(end, today)` → active / expiring (≤30d) / expired; badges; tests
-- [ ] Return deadline field + status
-- [ ] Reminder prefs (settings) + per-purchase toggle; in-app "Coming up" strip on Home
-- [ ] Browser notification (if permitted, while app open) — email in Phase 10
+- [x] Warranty section: add many; start defaults to purchase date but independent; duration helper (1y/2y/custom)
+- [x] `warrantyStatus(end, today)` → active / expiring (≤30d) / expired; badges; tests
+- [x] Return deadline field + status
+- [x] Reminder prefs (settings) + per-purchase toggle; in-app "Coming up" strip on Home
+- [x] Browser notification (opt-in from Settings, while app open), each reminder once — email in Phase 10
+- [x] Offer the warranty length printed on the receipt (one tap, never automatic)
 
 ## Phase 5 — Search  [FR-21,22 · EC-02 · AC-6,7]
 - [ ] MiniSearch index: title, product, model, serial, merchant, reference, notes, ocrText, year; fuzzy 0.2, prefix

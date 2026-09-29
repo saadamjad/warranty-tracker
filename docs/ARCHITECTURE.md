@@ -39,7 +39,7 @@ docs/                    SPEC, BUSINESS, STACK, ARCHITECTURE, PLAN
 ## Server schema (prisma/schema.prisma)
 Auth.js tables (User, Account, Session, VerificationToken) +
 - `Vault{id, ownerId}`
-- `Purchase{id, vaultId, userId, title?, productName?, model?, serial?, merchant?, purchaseDate?, amount Decimal?, currency?, reference?, notes?, returnDeadline?, fieldMeta Json, updatedAt, deletedAt?}`
+- `Purchase{id, vaultId, userId, title?, productName?, model?, serial?, merchant?, purchaseDate?, amount Decimal?, currency?, reference?, notes?, returnDeadline?, fieldMeta Json, remindersOff, updatedAt, deletedAt?}`
 - `Document{id, purchaseId, userId, type, pageCount, originalKeys[], enhancedKeys[], ocrText?, sha256, sizeBytes, createdAt, updatedAt, deletedAt?}` (D-30)
 - `Warranty{id, purchaseId, userId, provider?, startDate?, endDate?, notes?, updatedAt, deletedAt?}`
 - `ReminderPref{userId, warrantyDaysBefore=30, finalDaysBefore=7?, returnDaysBefore=3, emailEnabled}` (D-14, D-24)
