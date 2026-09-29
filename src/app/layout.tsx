@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ServiceWorker } from "@/features/offline/components/ServiceWorker";
 import { ReminderNotifier } from "@/features/reminders/components/ReminderNotifier";
+import { SyncRunner } from "@/features/sync/components/SyncRunner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,6 +37,7 @@ export default function RootLayout({
         {children}
         <ReminderNotifier />
         <ServiceWorker />
+        <SyncRunner />
       </body>
     </html>
   );
