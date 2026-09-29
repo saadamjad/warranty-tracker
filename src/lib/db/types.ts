@@ -51,6 +51,10 @@ export type VaultDocument = SyncedRecord & {
   ocrText?: string;
   sha256: string;
   sizeBytes: number;
+  /** Device-only: when this document's files reached backup storage. */
+  uploadedAt?: string;
+  /** Device-only: restored record whose files haven't downloaded yet (FR-29). */
+  pagesMissing?: boolean;
 };
 
 /** File content is kept apart from document rows so lists never load blobs. */
@@ -68,15 +72,6 @@ export type Warranty = SyncedRecord & {
   startDate?: string;
   endDate?: string;
   notes?: string;
-};
-
-export type SyncEntity = "purchase" | "document" | "warranty";
-
-export type OutboxEntry = {
-  seq?: number;
-  entity: SyncEntity;
-  entityId: string;
-  at: string;
 };
 
 export type MetaEntry = {

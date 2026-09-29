@@ -1,19 +1,11 @@
 import Dexie, { type EntityTable } from "dexie";
-import type {
-  DocumentPage,
-  MetaEntry,
-  OutboxEntry,
-  Purchase,
-  VaultDocument,
-  Warranty,
-} from "./types";
+import type { DocumentPage, MetaEntry, Purchase, VaultDocument, Warranty } from "./types";
 
 export class VaultDatabase extends Dexie {
   purchases!: EntityTable<Purchase, "id">;
   documents!: EntityTable<VaultDocument, "id">;
   pages!: Dexie.Table<DocumentPage, [string, number]>;
   warranties!: EntityTable<Warranty, "id">;
-  outbox!: EntityTable<OutboxEntry, "seq">;
   meta!: EntityTable<MetaEntry, "key">;
 
   constructor(name = "purchase-vault") {
@@ -27,6 +19,8 @@ export class VaultDatabase extends Dexie {
       outbox: "++seq, entityId",
       meta: "key",
     });
+    // Changes are found by updatedAt against a sync watermark instead of an outbox (D-35).
+    this.version(2).stores({ outbox: null });
   }
 }
 
