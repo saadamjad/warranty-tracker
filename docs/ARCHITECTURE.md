@@ -46,7 +46,8 @@ Auth.js tables (User, Account, Session, VerificationToken) +
 - `ReminderLog{id, userId, targetId, kind, dueAt, sentAt}` (idempotent emails)
 - `Change{seq bigserial, userId, vaultId, entity, entityId, op, at}` (sync cursor)
 
-All tables indexed by `userId`. Client Dexie mirrors Purchase / Document (+ page blobs) / Warranty, plus `outbox` and `meta`.
+All tables indexed by `userId`. Photos are stored one page row per image (original + enhanced copy);
+a PDF is stored once as a single page row, with `pageCount` holding its real page count. Client Dexie mirrors Purchase / Document (+ page blobs) / Warranty, plus `outbox` and `meta`.
 
 ## Routes
 - UI: `/` home · `/add` capture→review · `/p/[id]` detail/edit · `/search` · `/settings` (reminders, account, export, delete) · `/settings/deleted` (Recently Deleted, D-29) · `/privacy` · `/signin`

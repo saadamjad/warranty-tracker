@@ -20,14 +20,14 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] Recently Deleted `/settings/deleted`: restore / delete forever (D-29) — pulled forward so the delete promise holds
 
 ## Phase 2 — Capture & documents  [FR-04..07,13,14,24,35,36 · EC-01,03,11–16,20 · AC-4,5,15,16]
-- [ ] `/add`: Take photo (camera input) / Choose file (image, PDF); add more pages; reorder/remove pages
-- [ ] Validation: type/size limits (D-20) with friendly unsupported-file message + alternative
-- [ ] Camera denied/unavailable → explain + upload/manual fallback
-- [ ] Image pipeline (canvas): orientation, grayscale/contrast, crop-to-content, manual rotate; keep original
-- [ ] PDF: store as-is, render first page thumbnail (pdf.js lazy) for preview/reading
-- [ ] Document type picker (default Receipt), documents list + "Add document" on existing purchase
-- [ ] In-context viewer (original ⇄ enhanced toggle, pages)
-- [ ] "Skip — enter details myself" always visible
+- [x] `/add`: Take photo (camera input) / Choose file (image, PDF); add more pages; reorder/remove pages
+- [x] Validation: type/size limits (D-20) with friendly unsupported-file message + alternative
+- [x] Camera denied/unavailable → file input `capture` falls back to file choice; manual path always shown
+- [x] Image pipeline (canvas): orientation, grayscale/contrast, crop-to-content, manual rotate; keep original
+- [x] PDF: store as-is, pages rendered on demand (pdf.js lazy) for preview; text layer for reading
+- [x] Document type picker (default Receipt), documents list + "Add document" on existing purchase
+- [x] In-context viewer (original ⇄ enhanced toggle, pages)
+- [x] "Skip — enter details myself" always visible
 
 ## Phase 3 — Reading & review  [FR-08,09,10,46 · EC-06,19,25 · AC-2,14]
 - [ ] Self-host Tesseract assets in `public/tesseract/` (D-32)
