@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AccountSection } from "@/features/account/components/AccountSection";
+import { DangerZone } from "@/features/account/components/DangerZone";
 import { ExportButton } from "@/features/export/components/ExportButton";
 import { ReminderSettings } from "@/features/reminders/components/ReminderSettings";
 
@@ -21,6 +22,7 @@ export default function SettingsPage() {
           Recently Deleted
         </Link>
       </section>
+      <DangerZone />
     </main>
   );
 }
