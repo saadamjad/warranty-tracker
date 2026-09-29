@@ -1,14 +1,18 @@
 import Link from "next/link";
-import { EnterDetailsButton } from "@/features/purchases/components/EnterDetailsButton";
+import { CaptureFlow } from "@/features/capture/components/CaptureFlow";
 
-export default function AddPurchasePage() {
+type Props = { searchParams: Promise<{ to?: string }> };
+
+export default async function AddPurchasePage({ searchParams }: Props) {
+  const { to: purchaseId } = await searchParams;
+
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 px-4 py-12">
-      <Link href="/" className="text-primary hover:underline">
+      <Link href={purchaseId ? `/p/${purchaseId}` : "/"} className="text-primary hover:underline">
         ← Back
       </Link>
-      <h1 className="text-2xl font-bold">Add a purchase</h1>
-      <EnterDetailsButton />
+      <h1 className="text-2xl font-bold">{purchaseId ? "Add a document" : "Add a purchase"}</h1>
+      <CaptureFlow purchaseId={purchaseId} />
     </main>
   );
 }
