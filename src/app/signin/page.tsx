@@ -15,7 +15,7 @@ export default function SignInPage() {
       <p className="text-muted">
         Sign in to keep a copy of your purchases and documents safe, and to get them back on a new phone or computer.
         Everything keeps working without an account.{" "}
-        <Link href="/privacy" className="text-primary hover:underline">
+        <Link href="/privacy" className="text-primary underline">
           How is my data kept?
         </Link>
       </p>
