@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AccountSection } from "@/features/account/components/AccountSection";
+import { ExportButton } from "@/features/export/components/ExportButton";
 import { ReminderSettings } from "@/features/reminders/components/ReminderSettings";
 
 export default function SettingsPage() {
@@ -15,6 +16,7 @@ export default function SettingsPage() {
         <h2 id="data-heading" className="text-lg font-semibold">
           Your purchases
         </h2>
+        <ExportButton />
         <Link href="/settings/deleted" className="text-primary hover:underline">
           Recently Deleted
         </Link>
