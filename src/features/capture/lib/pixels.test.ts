@@ -40,6 +40,12 @@ describe("findContentBox", () => {
     expect(findContentBox(gray, 100, 100)).toBeNull();
   });
 
+  it("never crops dark text on a white page, even short lines (seen in real reading)", () => {
+    // Three text lines of different lengths on white: cropping would cut the long line's end.
+    const text = (x: number, y: number) => (y % 30 < 8 && x > 5 && x < [90, 40, 60][Math.floor(y / 30) % 3] ? 0 : 255);
+    expect(findContentBox(luminance(image(100, 90, text)), 100, 90)).toBeNull();
+  });
+
   it("keeps the whole image when nothing stands out", () => {
     expect(findContentBox(luminance(image(50, 50, () => 128)), 50, 50)).toBeNull();
   });

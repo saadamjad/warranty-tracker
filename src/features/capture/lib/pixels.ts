@@ -44,12 +44,17 @@ const CONTENT_DIFFERENCE = 40;
 const MIN_AREA = 0.2;
 const MAX_AREA = 0.95;
 
+/** Borders brighter than this are paper, a scan or a screenshot, not a table around the paper. */
+const LIGHT_BORDER = 128;
+
 /**
- * Best-effort bounds of the paper against its background, judged from the border colour.
- * Returns null when unsure, so the caller keeps the full image rather than cutting text off.
+ * Best-effort bounds of light paper on a darker background, judged from the border colour.
+ * Returns null when unsure — including light borders, where sparse dark text would be
+ * mistaken for the edge — so the caller keeps the full image rather than cutting text off.
  */
 export function findContentBox(gray: Uint8ClampedArray, width: number, height: number): Box | null {
   const background = borderMean(gray, width, height);
+  if (background > LIGHT_BORDER) return null;
   const rowHits = new Uint32Array(height);
   const colHits = new Uint32Array(width);
   for (let y = 0; y < height; y++) {
