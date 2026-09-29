@@ -31,7 +31,8 @@
     "db:migrate": "prisma migrate dev",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate && node scripts/copy-vendor-assets.mjs",
-    "test:db": "vitest run --config vitest.db.config.mts"
+    "test:db": "vitest run --config vitest.db.config.mts",
+    "e2e": "node e2e/acceptance.mjs && node e2e/sync.mjs && node e2e/a11y.mjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
@@ -60,10 +61,12 @@
     "@types/nodemailer": "^8.0.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "axe-core": "^4.13.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.26",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^29.1.1",
+    "playwright-core": "^1.63.0",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "typescript": "^5",
