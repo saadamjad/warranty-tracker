@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ServiceWorker } from "@/features/offline/components/ServiceWorker";
+import { LocalPurge } from "@/features/purchases/components/LocalPurge";
 import { ReminderNotifier } from "@/features/reminders/components/ReminderNotifier";
 import { SyncRunner } from "@/features/sync/components/SyncRunner";
 import "./globals.css";
@@ -38,6 +39,7 @@ export default function RootLayout({
         <ReminderNotifier />
         <ServiceWorker />
         <SyncRunner />
+        <LocalPurge />
       </body>
     </html>
   );
