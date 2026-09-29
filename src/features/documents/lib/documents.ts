@@ -6,7 +6,13 @@ import { hashPages } from "./hash";
 
 export type NewPage = { original: Blob; enhanced?: Blob; mimeType: string };
 
-export type NewDocument = { purchaseId: string; type: DocumentType; pages: NewPage[] };
+export type NewDocument = {
+  purchaseId: string;
+  type: DocumentType;
+  pages: NewPage[];
+  /** A PDF is stored as one file holding many pages; pass its real page count. */
+  pageCount?: number;
+};
 
 export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   receipt: "Receipt",
@@ -16,7 +22,7 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
 };
 
 /** Adds a document with ordered pages to a purchase (FR-13, FR-35, EC-01, EC-03). */
-export async function addDocument({ purchaseId, type, pages }: NewDocument): Promise<VaultDocument> {
+export async function addDocument({ purchaseId, type, pages, pageCount }: NewDocument): Promise<VaultDocument> {
   if (pages.length === 0) throw new Error("A document needs at least one page");
   const originals = pages.map((page) => page.original);
   const sha256 = await hashPages(originals);
@@ -25,7 +31,7 @@ export async function addDocument({ purchaseId, type, pages }: NewDocument): Pro
     id: crypto.randomUUID(),
     purchaseId,
     type,
-    pageCount: pages.length,
+    pageCount: pageCount ?? pages.length,
     sha256,
     sizeBytes: originals.reduce((sum, blob) => sum + blob.size, 0),
     createdAt: now,
