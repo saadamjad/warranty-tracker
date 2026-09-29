@@ -1,3 +1,4 @@
+import { updatePurchaseWith } from "@/features/purchases/lib/purchases";
 import type { Purchase, PurchaseField, PurchaseFields } from "@/lib/db/types";
 import type { ExtractedFields, Found } from "./types";
 
@@ -47,4 +48,8 @@ export function applyReview(purchase: Purchase, suggestions: Suggestions, submit
         : { source: "user", updatedAt: now };
   }
   return next;
+}
+
+export function saveReview(purchaseId: string, suggestions: Suggestions, submitted: PurchaseFields): Promise<Purchase> {
+  return updatePurchaseWith(purchaseId, (current, now) => applyReview(current, suggestions, submitted, now));
 }
