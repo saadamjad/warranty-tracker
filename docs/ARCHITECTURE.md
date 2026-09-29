@@ -7,11 +7,11 @@ Tech choices: `STACK.md`. Requirements: `SPEC.md`.
 Browser (primary store)                                Server (backup/sync, optional account)
  UI (Next.js App Router, Tailwind)                      Route handlers /api/*
   └ features/*/lib  ─→ Dexie (IndexedDB)                  └ repo.ts (userId-scoped) ─→ Prisma ─→ Postgres
-       purchases, documents(blobs), outbox                  storage.ts ─→ S3 (S3Mock dev / R2), presigned URLs
+       purchases, documents(blobs), meta                    storage.ts ─→ S3 (S3Mock dev / R2), presigned URLs
   └ MiniSearch index (offline fuzzy search)              Auth.js v5 (magic link + Google)
   └ Tesseract.js Web Worker (on-device reading)          Vercel cron (daily): reminder emails, 30-day purge
   └ public/sw.js (offline app shell)
-  └ sync: push outbox → /api/sync/push, pull /api/sync/pull?cursor=
+  └ sync: push records newer than watermark → /api/sync/push, pull /api/sync/pull?cursor= (D-35)
 ```
 
 ## Folder map
@@ -47,7 +47,7 @@ Auth.js tables (User, Account, Session, VerificationToken) +
 - `Change{seq bigserial, userId, vaultId, entity, entityId, op, at}` (sync cursor)
 
 All tables indexed by `userId`. Photos are stored one page row per image (original + enhanced copy);
-a PDF is stored once as a single page row, with `pageCount` holding its real page count. Client Dexie mirrors Purchase / Document (+ page blobs) / Warranty, plus `outbox` and `meta`.
+a PDF is stored once as a single page row, with `pageCount` holding its real page count. Client Dexie mirrors Purchase / Document (+ page blobs) / Warranty, plus `meta` (account, watermark, cursor, settings).
 
 ## Routes
 - UI (static shells, ids in the query string, D-33): `/` home · `/add[?to=id]` capture→review · `/p?id=` detail/edit · `/search?q=` · `/settings` (reminders, account, export, delete) · `/settings/deleted` (Recently Deleted, D-29) · `/privacy` · `/signin`

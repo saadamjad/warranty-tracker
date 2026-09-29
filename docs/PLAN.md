@@ -12,7 +12,7 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] git init, public GitHub repo, push
 
 ## Phase 1 — Local core  [FR-01,02,03,11,12,15,16,23,30,32,45 · AC-1,3,8,18]
-- [x] Dexie schema `src/lib/db` (purchases, documents, pages blobs, warranties, outbox, meta)
+- [x] Dexie schema `src/lib/db` (purchases, documents, pages blobs, warranties, meta)
 - [x] `features/purchases/lib`: create/update(fieldMeta source=user)/softDelete/restore/list/listDeleted/get + tests (D-29)
 - [x] App shell + Home: promise line, Add Purchase button, recent list, manual "Enter details myself" at `/add`
 - [x] Purchase detail `/p/[id]`: all fields inline-editable, notes, rename title (documents list lands with Phase 2)
@@ -62,7 +62,7 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 ## Phase 8 — Accounts & sync  [FR-28,29 · D-03,04,17,18 · EC-22 · AC-12,13]
 - [ ] Auth.js: Email (dev console link; prod SMTP) + Google; Prisma adapter; `/signin`
 - [ ] Backup prompt after 3rd saved purchase (dismissible, re-offer later) + guest device-change explainer
-- [ ] Outbox recording on every local change
+- [x] Change tracking on every local change: `updatedAt` vs sync watermark (D-35, replaces outbox)
 - [ ] `/api/sync/push` + `/pull` with cursor; file upload via presigned URL; merge rules (tests!)
 - [ ] First sign-in merge (never replace); restore on new device downloads records then files lazily
 - [ ] Background sync on online event/interval; problem state with plain message
