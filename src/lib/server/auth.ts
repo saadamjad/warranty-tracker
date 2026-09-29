@@ -1,14 +1,34 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth, { type NextAuthConfig } from "next-auth";
+import type { NodemailerConfig } from "next-auth/providers/nodemailer";
 import Google from "next-auth/providers/google";
 import Nodemailer from "next-auth/providers/nodemailer";
 import { serverEnv } from "./env";
 import { prisma } from "./prisma";
+import { recentSignInLinks } from "./repo";
+
+/** Sign-in links are valid for a day (Auth.js default). */
+const LINK_LIFETIME_MS = 24 * 60 * 60 * 1000;
+/** At most this many sign-in emails per address per window, so the form can't be used to spam someone. */
+const MAX_LINKS = 3;
+const WINDOW_MINUTES = 10;
+
+export class TooManySignInEmails extends Error {}
+
+function rateLimited(send: NodemailerConfig["sendVerificationRequest"]): NodemailerConfig["sendVerificationRequest"] {
+  return async (params) => {
+    // Auth.js stores the new link while sending, so count only earlier ones.
+    if ((await recentSignInLinks(params.identifier, WINDOW_MINUTES, LINK_LIFETIME_MS)) >= MAX_LINKS) {
+      throw new TooManySignInEmails(`Too many sign-in emails for one address`);
+    }
+    await send(params);
+  };
+}
 
 function authConfig(): NextAuthConfig {
   const env = serverEnv();
 
-  const email = env.SMTP_HOST
+  const provider = env.SMTP_HOST
     ? Nodemailer({
         server: {
           host: env.SMTP_HOST,
@@ -25,6 +45,10 @@ function authConfig(): NextAuthConfig {
           console.info(`\nSign-in link for ${identifier}:\n${url}\n`);
         },
       });
+
+  const email = { ...provider, sendVerificationRequest: rateLimited(provider.sendVerificationRequest) };
+  // Auth.js reads user overrides from `options`; keep both in step.
+  email.options = { ...provider.options, sendVerificationRequest: email.sendVerificationRequest };
 
   const google = env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET ? [Google] : [];
 

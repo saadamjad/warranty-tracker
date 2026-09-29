@@ -157,6 +157,15 @@ export async function saveReminderPrefs(userId: string, prefs: ReminderPrefsWire
   await prisma.reminderPref.upsert({ where: { userId }, create: { userId, ...data }, update: data });
 }
 
+/**
+ * Sign-in links requested for an email in the last `minutes`. Auth.js stores each link as a
+ * token valid for `linkLifetimeMs`, so recent ones expire later than now + lifetime − window.
+ */
+export async function recentSignInLinks(email: string, minutes: number, linkLifetimeMs: number): Promise<number> {
+  const since = new Date(Date.now() + linkLifetimeMs - minutes * 60_000);
+  return prisma.verificationToken.count({ where: { identifier: email, expires: { gt: since } } });
+}
+
 // ---- Scheduled jobs (not user-scoped: they run for everyone, from the cron route only) ----
 
 const PURGE_BATCH = 500;
