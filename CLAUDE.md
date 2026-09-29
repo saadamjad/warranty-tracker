@@ -47,7 +47,7 @@ Also: no dashboards/charts, sparse notifications, no legal claims about warranty
 
 ## Commands
 ```
-docker compose up -d        # postgres + minio
+docker compose up -d        # postgres (port 5433) + S3Mock storage (port 9000)
 npm run dev                 # http://localhost:3000 (magic links print to terminal)
 npm run db:migrate          # apply Prisma schema
 npm test · npm run lint · npm run typecheck · npm run build

@@ -16,7 +16,7 @@ Decided (SPEC D-25). Do not swap or add alternatives without a new Decision in S
 | Export | jszip | Client-side ZIP export, works offline (D-11) |
 | Server DB | Postgres 16 · **Prisma 6** | Docker locally, Neon free in prod. Prisma 6 not 7: works with @auth/prisma-adapter without driver adapters (D-26) |
 | Auth | Auth.js v5 (`next-auth` beta) + `@auth/prisma-adapter` | Email magic link (nodemailer) + Google (D-21) |
-| File storage | `@aws-sdk/client-s3` + `s3-request-presigner` | MinIO locally, Cloudflare R2 in prod; presigned URLs |
+| File storage | `@aws-sdk/client-s3` + `s3-request-presigner` | S3Mock locally (D-34), Cloudflare R2 in prod; presigned URLs |
 | Email (prod) | Resend free tier via SMTP (nodemailer) | Magic links + reminder emails; dev prints to console |
 | Hosting | Vercel Hobby + Vercel Cron (daily) | Reminders + 30-day purge |
 | Tests | Vitest · fake-indexeddb · jsdom · @testing-library/react | Fast unit/component tests |

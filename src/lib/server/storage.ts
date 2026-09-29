@@ -19,7 +19,7 @@ function s3(): S3Client {
         accessKeyId: env.S3_ACCESS_KEY_ID,
         secretAccessKey: env.S3_SECRET_ACCESS_KEY,
       },
-      // MinIO and R2 serve buckets by path, not subdomain.
+      // Local S3Mock and R2 serve buckets by path, not subdomain.
       forcePathStyle: true,
     });
   }

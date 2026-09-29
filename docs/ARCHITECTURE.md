@@ -7,7 +7,7 @@ Tech choices: `STACK.md`. Requirements: `SPEC.md`.
 Browser (primary store)                                Server (backup/sync, optional account)
  UI (Next.js App Router, Tailwind)                      Route handlers /api/*
   └ features/*/lib  ─→ Dexie (IndexedDB)                  └ repo.ts (userId-scoped) ─→ Prisma ─→ Postgres
-       purchases, documents(blobs), outbox                  storage.ts ─→ S3 (MinIO / R2), presigned URLs
+       purchases, documents(blobs), outbox                  storage.ts ─→ S3 (S3Mock dev / R2), presigned URLs
   └ MiniSearch index (offline fuzzy search)              Auth.js v5 (magic link + Google)
   └ Tesseract.js Web Worker (on-device reading)          Vercel cron (daily): reminder emails, 30-day purge
   └ public/sw.js (offline app shell)
