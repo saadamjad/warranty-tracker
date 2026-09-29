@@ -36,9 +36,14 @@ export default function Home() {
 
       <footer className="mt-auto flex flex-col gap-2 text-sm text-muted">
         <p>Everything stays on this device unless you choose to back it up.</p>
-        <Link href="/settings" className="hover:underline">
-          Settings
-        </Link>
+        <div className="flex gap-4">
+          <Link href="/settings" className="hover:underline">
+            Settings
+          </Link>
+          <Link href="/privacy" className="hover:underline">
+            Privacy
+          </Link>
+        </div>
       </footer>
     </main>
   );

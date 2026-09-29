@@ -31,6 +31,9 @@ export function BackupPrompt() {
         <button type="button" onClick={() => dismissBackupPrompt(offer.value.count)} className="rounded-card px-4 py-2 hover:underline">
           Not now
         </button>
+        <Link href="/privacy" className="self-center text-sm text-muted hover:underline">
+          How is my data kept?
+        </Link>
       </div>
     </section>
   );

@@ -14,7 +14,10 @@ export default function SignInPage() {
       <h1 className="text-2xl font-bold">Back up your purchases</h1>
       <p className="text-muted">
         Sign in to keep a copy of your purchases and documents safe, and to get them back on a new phone or computer.
-        Everything keeps working without an account.
+        Everything keeps working without an account.{" "}
+        <Link href="/privacy" className="text-primary hover:underline">
+          How is my data kept?
+        </Link>
       </p>
       <Suspense>
         <SignInFromQuery />
