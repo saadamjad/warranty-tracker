@@ -60,12 +60,14 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] Verify full flow offline in real Chrome (Playwright): add, manual fallback, save, list, typo search, edit, duplicate warning, on-device reading online and offline after first use
 
 ## Phase 8 — Accounts & sync  [FR-28,29 · D-03,04,17,18 · EC-22 · AC-12,13]
-- [ ] Auth.js: Email (dev console link; prod SMTP) + Google; Prisma adapter; `/signin`
-- [ ] Backup prompt after 3rd saved purchase (dismissible, re-offer later) + guest device-change explainer
+- [x] Auth.js: Email (dev console link; prod SMTP) + Google; Prisma adapter; `/signin` (session exposes id only, never the token)
+- [x] Backup prompt after 3rd saved purchase (dismissible, re-offer later) + guest device-change explainer
 - [x] Change tracking on every local change: `updatedAt` vs sync watermark (D-35, replaces outbox)
-- [ ] `/api/sync/push` + `/pull` with cursor; file upload via presigned URL; merge rules (tests!)
-- [ ] First sign-in merge (never replace); restore on new device downloads records then files lazily
-- [ ] Background sync on online event/interval; problem state with plain message
+- [x] `/api/sync/push` + `/pull` with cursor; file upload via presigned URL; merge rules (tests!)
+- [x] First sign-in merge (never replace); restore on new device downloads records then files lazily
+- [x] Background sync on online event/interval; problem state with plain message
+
+- [x] Verified with two real browser devices on Postgres + S3Mock: guest capture → sign in → backup with files → restore on second device (image renders) → edit syncs back → delete forever purges both
 
 ## Phase 9 — Export & deletion  [FR-31 · BR-07 · AC-18,19]
 - [ ] Client export (works offline): ZIP of originals + purchases.csv + purchases.json (jszip)
