@@ -8,11 +8,16 @@ export const CARD_REMOVED = "[card number removed]";
 const CARD_CANDIDATE = /\b\d(?:[ -]?\d){12,18}\b/g;
 // Printed masked cards: "XXXX XXXX XXXX 1234", "**** **** 1234", "xxxxxxxxxxxx1234".
 const MASKED_CARD = /(?:[x*•]{4}[ -]?){2,4}\d{4}\b/gi;
+// Phone IMEIs use the same check digit as cards; a labelled device number is kept.
+const DEVICE_LABEL = /(imei|serial|s\/n)\s*(no\.?|number)?\s*[:#]?\s*$/i;
 
 export function redactCardNumbers(text: string): string {
   return text
     .replace(MASKED_CARD, CARD_REMOVED)
-    .replace(CARD_CANDIDATE, (match) => (passesLuhn(match.replace(/\D/g, "")) ? CARD_REMOVED : match));
+    .replace(CARD_CANDIDATE, (match, offset: number, whole: string) => {
+      const before = whole.slice(whole.lastIndexOf("\n", offset) + 1, offset);
+      return passesLuhn(match.replace(/\D/g, "")) && !DEVICE_LABEL.test(before) ? CARD_REMOVED : match;
+    });
 }
 
 function passesLuhn(digits: string): boolean {

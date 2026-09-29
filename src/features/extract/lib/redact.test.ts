@@ -16,5 +16,6 @@ describe("redactCardNumbers", () => {
   it("keeps long numbers that aren't cards, like serials and barcodes", () => {
     expect(redactCardNumbers("Serial 1234567890123")).toBe("Serial 1234567890123");
     expect(redactCardNumbers("Invoice INV-2026-000123")).toBe("Invoice INV-2026-000123");
+    expect(redactCardNumbers("IMEI 356938035643809")).toBe("IMEI 356938035643809");
   });
 });
