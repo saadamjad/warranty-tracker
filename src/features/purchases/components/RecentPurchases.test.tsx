@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
+import { purchaseHref } from "@/lib/routes";
 import { createPurchase } from "../lib/purchases";
 import { RecentPurchases } from "./RecentPurchases";
 
@@ -16,6 +17,6 @@ describe("RecentPurchases", () => {
     const purchase = await createPurchase({ productName: "Kettle", merchant: "Metro" });
     render(<RecentPurchases />);
     const link = await screen.findByRole("link", { name: /Kettle/ });
-    expect(link.getAttribute("href")).toBe(`/p/${purchase.id}`);
+    expect(link.getAttribute("href")).toBe(purchaseHref(purchase.id));
   });
 });

@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createPurchase } from "@/features/purchases/lib/purchases";
 import { addWarranty } from "@/features/warranty/lib/warranties";
 import { db } from "@/lib/db";
+import { purchaseHref } from "@/lib/routes";
 import { ComingUp } from "./ComingUp";
 
 const inDays = (days: number) => format(addDays(new Date(), days), "yyyy-MM-dd");
@@ -17,7 +18,7 @@ describe("ComingUp", () => {
     await createPurchase({ productName: "Shoes", returnDeadline: inDays(1) });
     render(<ComingUp />);
     expect(await screen.findByRole("link", { name: "Shoes — 1 day left to return" })).toBeDefined();
-    expect(screen.getByRole("link", { name: "TV — Warranty ends in 12 days" }).getAttribute("href")).toBe(`/p/${tv.id}`);
+    expect(screen.getByRole("link", { name: "TV — Warranty ends in 12 days" }).getAttribute("href")).toBe(purchaseHref(tv.id));
   });
 
   it("shows nothing when nothing is due", async () => {

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { listDocuments } from "@/features/documents/lib/documents";
 import { getPurchase } from "@/features/purchases/lib/purchases";
 import { db } from "@/lib/db";
+import { purchaseHref } from "@/lib/routes";
 import { CaptureFlow } from "./CaptureFlow";
 
 const push = vi.fn();
@@ -30,7 +31,7 @@ describe("CaptureFlow", () => {
     expect(await screen.findByRole("heading", { name: "We found these details" })).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(push).toHaveBeenCalled());
-    const purchaseId = String(push.mock.calls[0][0]).replace("/p/", "");
+    const purchaseId = String(push.mock.calls[0][0]).replace("/p?id=", "");
     expect(await listDocuments(purchaseId)).toHaveLength(1);
     expect((await getPurchase(purchaseId))?.merchant).toBe("Metro");
   });
@@ -52,7 +53,7 @@ describe("CaptureFlow", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Continue" }));
     expect(await screen.findByRole("heading", { name: "You've saved this file before" })).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: /instead$/ }));
-    await waitFor(() => expect(push).toHaveBeenCalledWith(`/p/${first.purchaseId}`));
+    await waitFor(() => expect(push).toHaveBeenCalledWith(purchaseHref(first.purchaseId)));
     expect(await listDocuments(first.purchaseId)).toHaveLength(2);
   });
 });
