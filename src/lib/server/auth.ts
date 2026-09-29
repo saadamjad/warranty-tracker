@@ -32,7 +32,16 @@ function authConfig(): NextAuthConfig {
     adapter: PrismaAdapter(prisma),
     secret: env.AUTH_SECRET,
     providers: [email, ...google],
-    pages: { signIn: "/signin" },
+    pages: { signIn: "/signin", verifyRequest: "/signin/sent", error: "/signin" },
+    callbacks: {
+      // Sync needs the user's id. Only these fields reach the browser — never the session token.
+      session: ({ session, user }) => ({
+        expires: session.expires,
+        user: { id: user.id, email: user.email, name: user.name, image: user.image },
+      }),
+    },
+    // Host header is trusted on Vercel and in local dev; required outside Vercel by Auth.js v5.
+    trustHost: true,
   };
 }
 
