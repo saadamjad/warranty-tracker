@@ -98,6 +98,7 @@ model Purchase {
   returnDeadline DateTime? @db.Date
   /// Per-field { source: 'extracted' | 'user', confidence?, updatedAt } (D-17)
   fieldMeta      Json      @default("{}")
+  remindersOff   Boolean   @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime
   deletedAt      DateTime?
