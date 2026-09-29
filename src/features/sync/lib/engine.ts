@@ -1,8 +1,9 @@
+import { getReminderPrefs, markReminderPrefsSent, reminderPrefsChanged } from "@/features/warranty/lib/prefs";
 import type { PullResponse } from "@/lib/sync/schema";
 import { applyPull } from "./apply";
 import { collectChanges } from "./collect";
 import { downloadMissingPages, uploadPendingFiles } from "./files";
-import { SyncHttpError, getJson, postJson } from "./http";
+import { SyncHttpError, getJson, postJson, putJson } from "./http";
 import { clearPendingPurges, getAccount, getCursor, getPendingPurges, getSyncStatus, getWatermark, setCursor, setSyncStatus, setWatermark } from "./state";
 
 export type SyncOutcome = "done" | "no-account" | "offline" | "signed-out" | "error";
@@ -28,6 +29,7 @@ async function run(): Promise<SyncOutcome> {
   await setSyncStatus({ phase: "syncing", lastSyncedAt });
   try {
     await pushAll();
+    await pushReminderPrefs();
     await uploadPendingFiles();
     await pullAll();
     await downloadMissingPages();
@@ -65,6 +67,13 @@ async function pushAll(): Promise<void> {
     if (!batch) return;
     await setWatermark(batch.upTo);
   }
+}
+
+/** Reminder emails follow the settings on the device the user last changed them on. */
+async function pushReminderPrefs(): Promise<void> {
+  if (!(await reminderPrefsChanged())) return;
+  await putJson("/api/reminder-prefs", await getReminderPrefs());
+  await markReminderPrefsSent();
 }
 
 async function pullAll(): Promise<void> {

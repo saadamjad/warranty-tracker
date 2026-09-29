@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createPurchase } from "@/features/purchases/lib/purchases";
+import { setReminderPrefs } from "@/features/warranty/lib/prefs";
 import { db } from "@/lib/db";
 import { syncNow } from "./engine";
 import { getCursor, getSyncStatus, getWatermark, setAccount } from "./state";
@@ -36,6 +37,18 @@ describe("syncNow", () => {
     fetchMock.mockClear();
     await syncNow();
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(["/api/sync/pull?cursor=7"]);
+  });
+
+  it("sends changed reminder settings once", async () => {
+    await setAccount({ id: "u1", email: "a@x" });
+    await setReminderPrefs({ emailReminders: false });
+    fetchMock.mockImplementation(async (url: string) => (url.includes("pull") ? Response.json(emptyPull) : Response.json({ ok: true })));
+    await syncNow();
+    const put = fetchMock.mock.calls.find(([url]) => url === "/api/reminder-prefs");
+    expect(JSON.parse(put?.[1].body)).toMatchObject({ emailReminders: false, warrantyDaysBefore: 30 });
+    fetchMock.mockClear();
+    await syncNow();
+    expect(fetchMock.mock.calls.some(([url]) => url === "/api/reminder-prefs")).toBe(false);
   });
 
   it("treats a dropped connection as offline, not an error", async () => {

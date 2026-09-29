@@ -7,11 +7,20 @@ export type ReminderPrefs = {
   finalDaysBefore: number | null;
   /** Return deadline reminder (D-24). */
   returnDaysBefore: number;
+  /** Email reminders when backup is on (phase 10). */
+  emailReminders: boolean;
 };
 
-export const DEFAULT_REMINDER_PREFS: ReminderPrefs = { warrantyDaysBefore: 30, finalDaysBefore: 7, returnDaysBefore: 3 };
+export const DEFAULT_REMINDER_PREFS: ReminderPrefs = {
+  warrantyDaysBefore: 30,
+  finalDaysBefore: 7,
+  returnDaysBefore: 3,
+  emailReminders: true,
+};
 
 const KEY = "reminderPrefs";
+/** Set when settings changed since they were last sent with the backup. */
+const DIRTY_KEY = "reminderPrefsChanged";
 
 export async function getReminderPrefs(): Promise<ReminderPrefs> {
   const stored = await db.meta.get(KEY);
@@ -22,5 +31,14 @@ export async function getReminderPrefs(): Promise<ReminderPrefs> {
 export async function setReminderPrefs(prefs: Partial<ReminderPrefs>): Promise<void> {
   await db.transaction("rw", db.meta, async () => {
     await db.meta.put({ key: KEY, value: { ...(await getReminderPrefs()), ...prefs } });
+    await db.meta.put({ key: DIRTY_KEY, value: true });
   });
+}
+
+export async function reminderPrefsChanged(): Promise<boolean> {
+  return (await db.meta.get(DIRTY_KEY))?.value === true;
+}
+
+export async function markReminderPrefsSent(): Promise<void> {
+  await db.meta.delete(DIRTY_KEY);
 }

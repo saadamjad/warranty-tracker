@@ -11,6 +11,6 @@ describe("reminder prefs", () => {
 
   it("saves changes and can turn off the final reminder", async () => {
     await setReminderPrefs({ finalDaysBefore: null, returnDaysBefore: 5 });
-    expect(await getReminderPrefs()).toEqual({ warrantyDaysBefore: 30, finalDaysBefore: null, returnDaysBefore: 5 });
+    expect(await getReminderPrefs()).toEqual({ warrantyDaysBefore: 30, finalDaysBefore: null, returnDaysBefore: 5, emailReminders: true });
   });
 });
