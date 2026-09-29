@@ -76,3 +76,22 @@ export async function removeDocument(id: string): Promise<void> {
   const now = new Date().toISOString();
   await db.documents.update(id, { deletedAt: now, updatedAt: now });
 }
+
+/** Live documents with exactly this content, i.e. the same file saved before (D-12). */
+export async function findDocumentsByHash(sha256: string): Promise<VaultDocument[]> {
+  const documents = await db.documents.where("sha256").equals(sha256).toArray();
+  return documents.filter((document) => !document.deletedAt);
+}
+
+/** Moves every live document of one purchase to another; only on the user's request (EC-17). */
+export async function moveDocuments(fromPurchaseId: string, toPurchaseId: string): Promise<void> {
+  const now = new Date().toISOString();
+  await db.transaction("rw", db.documents, db.purchases, async () => {
+    await db.documents
+      .where("purchaseId")
+      .equals(fromPurchaseId)
+      .filter((document) => !document.deletedAt)
+      .modify({ purchaseId: toPurchaseId, updatedAt: now });
+    await db.purchases.update(toPurchaseId, { updatedAt: now });
+  });
+}
