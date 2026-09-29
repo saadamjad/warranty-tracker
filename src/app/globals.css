@@ -1,26 +1,65 @@
 @import "tailwindcss";
 
+/* Design tokens (CODING_STANDARDS §6). Components use the semantic Tailwind names
+   below (bg-primary, text-muted, border-line…), never raw colors. */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --surface: #f5f5f4;
+  --muted: #57534e;
+  --line: #d6d3d1;
+  --primary: #1d4ed8;
+  --primary-hover: #1e40af;
+  --on-primary: #ffffff;
+  --danger: #b91c1c;
+  --danger-hover: #991b1b;
+  /* Uncertain extracted fields; always paired with text, never color alone (§7). */
+  --attention: #b45309;
+  --attention-surface: #fef3c7;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0c0a09;
+    --foreground: #f5f5f4;
+    --surface: #1c1917;
+    --muted: #a8a29e;
+    --line: #44403c;
+    --primary: #3b82f6;
+    --primary-hover: #60a5fa;
+    --on-primary: #0c0a09;
+    --danger: #f87171;
+    --danger-hover: #fca5a5;
+    --attention: #fbbf24;
+    --attention-surface: #422006;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-attention: var(--attention);
+  --color-attention-surface: var(--attention-surface);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --radius-card: 0.75rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
