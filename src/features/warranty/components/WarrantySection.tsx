@@ -2,7 +2,7 @@
 
 import { EditableField } from "@/features/purchases/components/EditableField";
 import type { Purchase, Warranty } from "@/lib/db/types";
-import { useWarranties } from "../lib/hooks";
+import { useReceiptWarrantyMonths, useWarranties } from "../lib/hooks";
 import { deadlineState, describeWarranty, endDateFrom } from "../lib/status";
 import { addWarranty, removeWarranty, updateWarranty, type WarrantyFields } from "../lib/warranties";
 import { StatusBadge } from "./StatusBadge";
@@ -15,6 +15,9 @@ const LENGTHS = [
 /** Warranties on a purchase (FR-17, FR-18, AC-9). */
 export function WarrantySection({ purchase }: { purchase: Purchase }) {
   const warranties = useWarranties(purchase.id);
+  const receiptMonths = useReceiptWarrantyMonths(purchase.id);
+  const noWarrantyYet = warranties.status === "ready" && warranties.value.length === 0;
+  const offer = noWarrantyYet && receiptMonths.status === "ready" ? receiptMonths.value : undefined;
 
   return (
     <section aria-labelledby="warranty-heading" className="flex flex-col gap-3">
@@ -23,6 +26,7 @@ export function WarrantySection({ purchase }: { purchase: Purchase }) {
       </h2>
       {warranties.status === "ready" &&
         warranties.value.map((warranty) => <WarrantyCard key={warranty.id} warranty={warranty} />)}
+      {offer && purchase.purchaseDate && <ReceiptWarrantyOffer months={offer} purchase={purchase} startDate={purchase.purchaseDate} />}
       <button
         type="button"
         // Starts on the purchase date by default; it stays editable for install-date warranties (EC-07).
@@ -32,6 +36,23 @@ export function WarrantySection({ purchase }: { purchase: Purchase }) {
         + Add warranty
       </button>
     </section>
+  );
+}
+
+/** Offered, never added silently (rule 4). */
+function ReceiptWarrantyOffer({ months, purchase, startDate }: { months: number; purchase: Purchase; startDate: string }) {
+  const length = months % 12 === 0 ? `${months / 12}-year` : `${months}-month`;
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-card bg-surface p-3">
+      <span>The receipt mentions a {length} warranty.</span>
+      <button
+        type="button"
+        onClick={() => addWarranty(purchase.id, { startDate, endDate: endDateFrom(startDate, months) })}
+        className="rounded-card bg-primary px-3 py-2 text-on-primary hover:bg-primary-hover"
+      >
+        Add it
+      </button>
+    </div>
   );
 }
 
