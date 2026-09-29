@@ -46,9 +46,9 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] Offer the warranty length printed on the receipt (one tap, never automatic)
 
 ## Phase 5 — Search  [FR-21,22 · EC-02 · AC-6,7]
-- [ ] MiniSearch index: title, product, model, serial, merchant, reference, notes, ocrText, year; fuzzy 0.2, prefix
-- [ ] Incremental index updates on save/delete; rebuild on load
-- [ ] Search box on Home + `/search`; results show purchase + matched field/document snippet; tests for typos/partials
+- [x] MiniSearch index: title, product, model, serial, merchant, reference, notes, ocrText, year; typo allowance by word length (exact for numbers), prefix
+- [x] Index kept current: rebuilt from live data on every local change (fast at personal scale)
+- [x] Search box on Home + `/search`; results show purchase + matched field/document snippet; tests for typos/partials
 
 ## Phase 6 — Duplicates  [FR-34 · EC-17,18 · AC-17]
 - [ ] sha256 of original file; same hash → warn; same merchant+date+amount → softer warn
