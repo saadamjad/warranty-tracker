@@ -1,13 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { moveDocuments } from "@/features/documents/lib/documents";
+import { DuplicateWarning } from "@/features/duplicates/components/DuplicateWarning";
+import { similarPurchases } from "@/features/duplicates/lib/duplicates";
 import { formatDate } from "@/features/purchases/lib/display";
+import { softDeletePurchase } from "@/features/purchases/lib/purchases";
 import { PURCHASE_FIELDS } from "@/features/purchases/lib/fieldConfig";
 import type { Purchase } from "@/lib/db/types";
 import { REVIEW_FIELDS, initialValues, saveReview, type ReviewField, type Suggestions } from "../lib/review";
 import { needsCheck } from "../lib/types";
 
-type Props = { purchase: Purchase; suggestions: Suggestions; notice?: string; onSaved: () => void };
+type Props = {
+  purchase: Purchase;
+  suggestions: Suggestions;
+  notice?: string;
+  /** Called with the purchase to open next: this one, or the existing one it was added to. */
+  onSaved: (purchaseId: string) => void;
+};
 
 const CONFIG = new Map(PURCHASE_FIELDS.map((config) => [config.field, config]));
 
@@ -15,19 +25,45 @@ export function ReviewForm({ purchase, suggestions, notice, onSaved }: Props) {
   const [values, setValues] = useState(() => initialValues(purchase, suggestions));
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [similar, setSimilar] = useState<Purchase[]>([]);
   const foundAny = Object.values(suggestions).some(Boolean);
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
     setSaving(true);
     try {
-      await saveReview(purchase.id, suggestions, values);
-      onSaved();
+      const saved = await saveReview(purchase.id, suggestions, values);
+      const matches = await similarPurchases(saved);
+      if (matches.length > 0) {
+        setSimilar(matches);
+        setSaving(false);
+        return;
+      }
+      onSaved(purchase.id);
     } catch (error) {
       console.error("Could not save reviewed details", error);
       setFailed(true);
       setSaving(false);
     }
+  }
+
+  /** User chose to keep one purchase: documents move there, this one goes to Recently Deleted. */
+  async function addToExisting(existing: Purchase) {
+    await moveDocuments(purchase.id, existing.id);
+    await softDeletePurchase(purchase.id);
+    onSaved(existing.id);
+  }
+
+  if (similar.length > 0) {
+    return (
+      <DuplicateWarning
+        reason="similar"
+        matches={similar}
+        onSaveAnyway={() => onSaved(purchase.id)}
+        onAddToExisting={addToExisting}
+        onCancel={() => setSimilar([])}
+      />
+    );
   }
 
   return (

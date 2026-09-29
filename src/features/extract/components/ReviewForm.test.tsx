@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createPurchase, getPurchase } from "@/features/purchases/lib/purchases";
+import { createPurchase, getPurchase, listPurchases } from "@/features/purchases/lib/purchases";
 import { db } from "@/lib/db";
 import type { Suggestions } from "../lib/review";
 import { ReviewForm } from "./ReviewForm";
@@ -24,7 +24,7 @@ describe("ReviewForm", () => {
     fireEvent.change(screen.getByLabelText("Store"), { target: { value: "Metro Thokar" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
-    await waitFor(() => expect(onSaved).toHaveBeenCalled());
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith(purchase.id));
     const saved = await getPurchase(purchase.id);
     expect(saved).toMatchObject({ merchant: "Metro Thokar", purchaseDate: "2026-04-05" });
     expect(saved?.fieldMeta.merchant?.source).toBe("user");
@@ -35,5 +35,22 @@ describe("ReviewForm", () => {
     render(<ReviewForm purchase={purchase} suggestions={{}} onSaved={vi.fn()} />);
     expect(screen.getByRole("heading", { name: "Add the details you know" })).toBeDefined();
     expect((screen.getByLabelText("Purchase date") as HTMLInputElement).value).toBe("");
+  });
+
+  it("warns about a same store, date and amount purchase and can join them (AC-17)", async () => {
+    const existing = await createPurchase({ merchant: "Metro", purchaseDate: "2026-08-12", amount: "700.00" });
+    const purchase = await createPurchase();
+    const onSaved = vi.fn();
+    const found: Suggestions = {
+      merchant: { value: "Metro", confidence: 0.9 },
+      purchaseDate: { value: "2026-08-12", confidence: 0.9 },
+      amount: { value: "700.00", confidence: 0.9 },
+    };
+    render(<ReviewForm purchase={purchase} suggestions={found} onSaved={onSaved} />);
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByRole("heading", { name: "This looks like a purchase you already have" })).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: /instead$/ }));
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith(existing.id));
+    expect((await listPurchases()).map((p) => p.id)).toEqual([existing.id]);
   });
 });

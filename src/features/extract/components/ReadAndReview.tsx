@@ -8,7 +8,7 @@ import { ReadTimeoutError } from "../lib/reader";
 import { suggestionsFrom, type Suggestions } from "../lib/review";
 import { ReviewForm } from "./ReviewForm";
 
-type Props = { purchaseId: string; documentId: string; onDone: () => void };
+type Props = { purchaseId: string; documentId: string; onDone: (purchaseId: string) => void };
 
 type State =
   | { step: "reading"; progress: number }

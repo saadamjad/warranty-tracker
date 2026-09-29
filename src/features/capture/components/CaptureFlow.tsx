@@ -55,7 +55,7 @@ export function CaptureFlow({ purchaseId }: Props) {
   }
 
   if (saved) {
-    return <ReadAndReview {...saved} onDone={() => router.push(`/p/${saved.purchaseId}`)} />;
+    return <ReadAndReview {...saved} onDone={(id) => router.push(`/p/${id}`)} />;
   }
 
   const message = saveError ?? draft.message;
