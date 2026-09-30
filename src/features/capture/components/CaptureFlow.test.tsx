@@ -8,6 +8,7 @@ import { CaptureFlow } from "./CaptureFlow";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+vi.mock("@/features/extract/lib/warmUp", () => ({ prepareOfflineReading: vi.fn(async () => false) }));
 vi.mock("../lib/enhance", () => ({ enhanceImage: vi.fn(async () => undefined) }));
 vi.mock("@/features/extract/lib/extract", () => ({
   extractDocument: vi.fn(async () => ({ text: "", fields: { merchant: { value: "Metro", confidence: 0.9 } } })),

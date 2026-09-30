@@ -40,6 +40,12 @@ export async function readText(pages: Blob[], onProgress: (progress: number) => 
   }
 }
 
+/** Loads the reader once and closes it, so its files are cached for reading offline. */
+export async function prepareReader(): Promise<void> {
+  const worker = await startWorker(() => {});
+  await worker.terminate();
+}
+
 async function startWorker(onPageProgress: (progress: number) => void): Promise<Worker> {
   const { createWorker, OEM } = await import("tesseract.js");
   return createWorker("eng", OEM.LSTM_ONLY, {

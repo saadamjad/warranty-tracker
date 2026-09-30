@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useReducer, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { DocumentTypePicker } from "@/features/documents/components/DocumentTypePicker";
 import { DuplicateWarning } from "@/features/duplicates/components/DuplicateWarning";
 import { purchasesWithSameFile } from "@/features/duplicates/lib/duplicates";
 import { ReadAndReview } from "@/features/extract/components/ReadAndReview";
+import { prepareOfflineReading } from "@/features/extract/lib/warmUp";
 import { EnterDetailsButton } from "@/features/purchases/components/EnterDetailsButton";
 import type { DocumentType, Purchase } from "@/lib/db/types";
 import { draftReducer, emptyDraft } from "../lib/draft";
@@ -25,6 +26,10 @@ export function CaptureFlow({ purchaseId }: Props) {
   const [saved, setSaved] = useState<{ purchaseId: string; documentId: string }>();
   const [sameFile, setSameFile] = useState<Purchase[]>([]);
   const hasPages = draft.pages.length > 0;
+
+  useEffect(() => {
+    prepareOfflineReading().catch((error) => console.warn("Could not prepare offline reading", error));
+  }, []);
 
   /** New purchases are checked for a file saved before; the user decides what to do (D-12). */
   async function start() {
