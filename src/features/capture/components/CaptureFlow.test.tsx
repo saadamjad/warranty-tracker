@@ -37,6 +37,16 @@ describe("CaptureFlow", () => {
     expect((await getPurchase(purchaseId))?.merchant).toBe("Metro");
   });
 
+  it("saves once when Continue is tapped twice", async () => {
+    render(<CaptureFlow />);
+    fireEvent.change(screen.getByLabelText("Choose file"), { target: { files: [photo] } });
+    const button = await screen.findByRole("button", { name: "Continue" });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    expect(await screen.findByRole("heading", { name: "We found these details" })).toBeDefined();
+    expect(await listPurchases()).toHaveLength(1);
+  });
+
   it("explains an unsupported file (AC-15)", async () => {
     render(<CaptureFlow />);
     const doc = new File(["x"], "notes.docx", { type: "application/msword" });

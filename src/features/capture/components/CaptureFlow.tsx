@@ -11,7 +11,7 @@ import { EnterDetailsButton } from "@/features/purchases/components/EnterDetails
 import { deletePurchaseForever } from "@/features/purchases/lib/purchases";
 import type { DocumentType, Purchase } from "@/lib/db/types";
 import { purchaseHref } from "@/lib/routes";
-import { draftReducer, emptyDraft } from "../lib/draft";
+import { draftReducer, emptyDraft, type Draft } from "../lib/draft";
 import { DraftError, draftHash, saveDraft } from "../lib/saveDraft";
 import { CaptureButtons } from "./CaptureButtons";
 import { PageList } from "./PageList";
@@ -33,11 +33,18 @@ export function CaptureFlow({ purchaseId }: Props) {
     prepareOfflineReading().catch((error) => console.warn("Could not prepare offline reading", error));
   }, []);
 
-  /** New purchases are checked for a file saved before; the user decides what to do (D-12). */
+  /**
+   * New purchases are checked for a file saved before; the user decides what to do (D-12).
+   * The button is disabled from the first tap, so a double tap can't save twice.
+   */
   async function start() {
+    setSaving(true);
     if (!purchaseId) {
-      const matches = await purchasesWithSameFile(await draftHash(draft)).catch(() => []);
-      if (matches.length > 0) return setSameFile(matches);
+      const matches = await sameFileAs(draft);
+      if (matches.length > 0) {
+        setSaving(false);
+        return setSameFile(matches);
+      }
     }
     await save(purchaseId);
   }
@@ -133,4 +140,14 @@ export function CaptureFlow({ purchaseId }: Props) {
       )}
     </div>
   );
+}
+
+/** The duplicate check only advises (D-12): if it fails, saving goes ahead. */
+async function sameFileAs(draft: Draft): Promise<Purchase[]> {
+  try {
+    return await purchasesWithSameFile(await draftHash(draft));
+  } catch (error) {
+    console.warn("Could not check for a file saved before", error);
+    return [];
+  }
 }
