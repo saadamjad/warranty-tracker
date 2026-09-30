@@ -92,6 +92,20 @@ describe("repo sync (Postgres)", () => {
     expect(deleteObjects.mock.calls[0][0]).toHaveLength(2);
   });
 
+  it("never brings back a purchase deleted forever when another device sends an older edit (D-29)", async () => {
+    const me = await user();
+    const p = purchase();
+    await push(me, { purchases: [p] });
+    const before = await pullChanges(me, BigInt(0));
+    await push(me, { purged: [p.id] });
+
+    // Another device still has the purchase, edited, with a new warranty and document.
+    await push(me, { purchases: [{ ...p, notes: "edited", updatedAt: t(2) }], warranties: [warranty(p.id)], documents: [document(p.id)] });
+    expect(await prisma.purchase.count({ where: { id: p.id } })).toBe(0);
+    expect(await prisma.warranty.count({ where: { purchaseId: p.id } })).toBe(0);
+    expect((await pullChanges(me, BigInt(before.cursor))).purged).toEqual([p.id]);
+  });
+
   it("pages through changes with a cursor", async () => {
     const me = await user();
     await push(me, { purchases: [purchase(), purchase(), purchase()] });

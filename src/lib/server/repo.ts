@@ -35,7 +35,15 @@ export async function pushChanges(userId: string, body: PushBody): Promise<void>
   const vault = await getOrCreateVault(userId);
   const purgedKeys = await prisma.$transaction(
     async (tx) => {
-      for (const incoming of body.purchases) {
+      // A device that hasn't heard of a delete-forever yet may still send the purchase or its
+      // children; they are skipped, and its next pull removes them there too (D-29).
+      const gone = await purgedPurchaseIds(tx, userId, [
+        ...body.purchases.map((incoming) => incoming.id),
+        ...body.documents.map((incoming) => incoming.purchaseId),
+        ...body.warranties.map((incoming) => incoming.purchaseId),
+      ]);
+
+      for (const incoming of body.purchases.filter((purchase) => !gone.has(purchase.id))) {
         const row = await tx.purchase.findUnique({ where: { id: incoming.id } });
         if (row && row.userId !== userId) throw new ForbiddenRecordError(`purchase ${incoming.id}`);
         const merged = mergePurchase(row ? purchaseFromRow(row) : undefined, incoming);
@@ -44,7 +52,7 @@ export async function pushChanges(userId: string, body: PushBody): Promise<void>
         await recordChange(tx, userId, vault.id, "purchase", incoming.id, "UPSERT");
       }
 
-      for (const incoming of body.documents) {
+      for (const incoming of body.documents.filter((document) => !gone.has(document.purchaseId))) {
         await assertOwnsPurchase(tx, userId, incoming.purchaseId);
         const row = await tx.document.findUnique({ where: { id: incoming.id } });
         if (row && row.userId !== userId) throw new ForbiddenRecordError(`document ${incoming.id}`);
@@ -57,7 +65,7 @@ export async function pushChanges(userId: string, body: PushBody): Promise<void>
         await recordChange(tx, userId, vault.id, "document", incoming.id, "UPSERT");
       }
 
-      for (const incoming of body.warranties) {
+      for (const incoming of body.warranties.filter((warranty) => !gone.has(warranty.purchaseId))) {
         await assertOwnsPurchase(tx, userId, incoming.purchaseId);
         const row = await tx.warranty.findUnique({ where: { id: incoming.id } });
         if (row && row.userId !== userId) throw new ForbiddenRecordError(`warranty ${incoming.id}`);
@@ -81,6 +89,16 @@ async function purgePurchases(tx: Tx, userId: string, vaultId: string, ids: stri
   await tx.purchase.deleteMany({ where: { id: { in: rows.map((row) => row.id) }, userId } });
   for (const row of rows) await recordChange(tx, userId, vaultId, "purchase", row.id, "DELETE");
   return rows.flatMap((row) => row.documents.flatMap((document) => [...document.originalKeys, ...document.enhancedKeys])).filter(Boolean);
+}
+
+/** Which of these purchases were deleted forever (by the user or the 30-day purge). */
+async function purgedPurchaseIds(tx: Tx, userId: string, ids: string[]): Promise<Set<string>> {
+  if (ids.length === 0) return new Set();
+  const deletes = await tx.change.findMany({
+    where: { userId, entity: "purchase", op: "DELETE", entityId: { in: [...new Set(ids)] } },
+    select: { entityId: true },
+  });
+  return new Set(deletes.map((change) => change.entityId));
 }
 
 async function assertOwnsPurchase(tx: Tx, userId: string, purchaseId: string): Promise<void> {

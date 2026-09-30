@@ -213,4 +213,6 @@ model Change {
   at       DateTime @default(now())
 
   @@index([userId, seq])
+  // Push checks whether a purchase was deleted forever before accepting it again.
+  @@index([userId, entityId])
 }
