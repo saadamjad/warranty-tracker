@@ -1,7 +1,7 @@
 // Offline support (FR-25, FR-26, D-33). Plain JS: served as-is from /sw.js.
 // Pages are static shells, so caching each once lets the app open offline for any purchase.
 
-const VERSION = "v2";
+const VERSION = "v3";
 const PAGES = `pages-${VERSION}`;
 const ASSETS = `assets-${VERSION}`;
 const SHELL = ["/", "/add", "/p", "/search", "/settings", "/settings/deleted", "/privacy", "/signin"];
@@ -63,9 +63,12 @@ function isStatic(pathname) {
 
 /** Build files are content-hashed and vendor files versioned by install, so a cached copy stays valid. */
 async function cacheFirst(request) {
-  const cached = await caches.match(request);
+  // Looked up by URL: these files never differ per request, and matching the browser's
+  // worker-script request object itself missed offline, so reading couldn't start.
+  const cached = await caches.match(request.url, { ignoreVary: true });
   if (cached) return cached;
   const response = await fetch(request);
-  if (response.ok) (await caches.open(ASSETS)).put(request, response.clone());
+  // Stored before answering, so "ready for offline" is true the moment a file has loaded.
+  if (response.ok) await (await caches.open(ASSETS)).put(request, response.clone());
   return response;
 }
