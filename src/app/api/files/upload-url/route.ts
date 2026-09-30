@@ -15,12 +15,12 @@ export async function POST(request: Request) {
   if (!keys) return jsonError(404, "Document not found.");
 
   const urls: FileUrl[] = [];
-  for (const { index, variant } of body.files) {
+  for (const { index, variant, size } of body.files) {
     const key = variant === "original" ? keys.originalKeys[index] : keys.enhancedKeys[index];
     if (!key) return jsonError(400, "Invalid page.");
     // Enhanced copies are always JPEG (capture pipeline); originals keep their own type.
     const contentType = variant === "original" ? keys.mimeTypes[index] : "image/jpeg";
-    urls.push({ index, variant, url: await uploadUrl(key, contentType) });
+    urls.push({ index, variant, url: await uploadUrl(key, contentType, size) });
   }
   return NextResponse.json({ urls });
 }

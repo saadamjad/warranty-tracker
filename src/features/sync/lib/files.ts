@@ -24,8 +24,8 @@ async function uploadDocument(document: VaultDocument): Promise<void> {
   const pages = await db.pages.where("documentId").equals(document.id).sortBy("index");
   if (pages.length === 0) return;
   const files: UploadUrlBody["files"] = pages.flatMap((page) => [
-    { index: page.index, variant: "original" as const },
-    ...(page.enhanced ? [{ index: page.index, variant: "enhanced" as const }] : []),
+    { index: page.index, variant: "original" as const, size: page.original.size },
+    ...(page.enhanced ? [{ index: page.index, variant: "enhanced" as const, size: page.enhanced.size }] : []),
   ]);
   const { urls } = await postJson<{ urls: FileUrl[] }>("/api/files/upload-url", { documentId: document.id, files });
 

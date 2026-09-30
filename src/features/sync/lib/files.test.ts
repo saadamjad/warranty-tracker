@@ -26,7 +26,7 @@ describe("sync files", () => {
 
     await uploadPendingFiles();
 
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ documentId: "d1", files: [{ index: 0, variant: "original" }, { index: 0, variant: "enhanced" }] });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ documentId: "d1", files: [{ index: 0, variant: "original", size: 1 }, { index: 0, variant: "enhanced", size: 1 }] });
     expect(fetchMock.mock.calls[1]).toEqual(["https://s3/o", expect.objectContaining({ method: "PUT", headers: { "Content-Type": "image/png" } })]);
     const stored = await db.documents.get("d1");
     expect(stored?.uploadedAt).toBeDefined();

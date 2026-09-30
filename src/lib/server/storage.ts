@@ -35,8 +35,9 @@ export function isOwnedKey(userId: string, key: string): boolean {
   return key.startsWith(`users/${userId}/`) && !key.includes("..");
 }
 
-export function uploadUrl(key: string, contentType: string): Promise<string> {
-  const command = new PutObjectCommand({ Bucket: serverEnv().S3_BUCKET, Key: key, ContentType: contentType });
+/** The size is signed into the link, so storage refuses any other file size (D-20 limits). */
+export function uploadUrl(key: string, contentType: string, size: number): Promise<string> {
+  const command = new PutObjectCommand({ Bucket: serverEnv().S3_BUCKET, Key: key, ContentType: contentType, ContentLength: size });
   return getSignedUrl(s3(), command, { expiresIn: URL_TTL_SECONDS });
 }
 
