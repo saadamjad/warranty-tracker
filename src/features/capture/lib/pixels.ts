@@ -11,6 +11,9 @@ export function luminance(rgba: Uint8ClampedArray): Uint8ClampedArray {
   return out;
 }
 
+/** Below this spread the image is flat (blank or one tone); stretching would only add noise. */
+const MIN_RANGE = 16;
+
 /**
  * Grayscale with a contrast stretch between the 2nd and 98th percentiles, which lifts
  * faded thermal print without promising to restore it (EC-12). Writes into `rgba`.
@@ -20,9 +23,15 @@ export function stretchContrast(rgba: Uint8ClampedArray): void {
   const histogram = new Uint32Array(256);
   for (const value of gray) histogram[value]++;
 
-  const low = percentile(histogram, gray.length, 0.02);
+  // Measured on the darkest and lightest values actually present, so sparse text on a mostly
+  // white page (under 2% of pixels) still counts instead of the page turning black.
+  const low = Math.min(percentile(histogram, gray.length, 0.02), percentile(histogram, gray.length, 0.001));
   const high = percentile(histogram, gray.length, 0.98);
-  const range = Math.max(1, high - low);
+  const range = high - low;
+  if (range < MIN_RANGE) {
+    for (let i = 0; i < gray.length; i++) rgba[i * 4] = rgba[i * 4 + 1] = rgba[i * 4 + 2] = gray[i];
+    return;
+  }
 
   for (let i = 0; i < gray.length; i++) {
     const value = ((gray[i] - low) * 255) / range;

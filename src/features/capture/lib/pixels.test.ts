@@ -23,6 +23,23 @@ describe("stretchContrast", () => {
   });
 });
 
+describe("stretchContrast on sparse pages", () => {
+  it("keeps a mostly white page white and its few dark pixels dark (seen in real reading)", () => {
+    // 1 dark pixel row in 100: text covers 1% of the page.
+    const rgba = image(100, 100, (_, y) => (y === 50 ? 20 : 250));
+    stretchContrast(rgba);
+    const gray = luminance(rgba);
+    expect(gray[10 * 100]).toBeGreaterThan(200);
+    expect(gray[50 * 100]).toBeLessThan(60);
+  });
+
+  it("leaves a blank page as it is", () => {
+    const rgba = image(10, 10, () => 240);
+    stretchContrast(rgba);
+    expect(luminance(rgba)[0]).toBe(240);
+  });
+});
+
 describe("findContentBox", () => {
   it("finds light paper on a dark table", () => {
     // 100x100 dark table, paper at x 20..69, y 10..89
