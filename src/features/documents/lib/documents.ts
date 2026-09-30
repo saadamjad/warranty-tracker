@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import type { DocumentPage, DocumentType, VaultDocument } from "@/lib/db/types";
+import { MAX_OCR_TEXT } from "@/lib/sync/schema";
 import { hashPages } from "./hash";
 
 // Client data access for documents; components call these, never Dexie directly.
@@ -66,9 +67,12 @@ export async function getPages(documentId: string): Promise<DocumentPage[]> {
   return db.pages.where("documentId").equals(documentId).sortBy("index");
 }
 
-/** Text read from the document, card numbers already removed; used by search (FR-21, EC-02). */
+/**
+ * Text read from the document, card numbers already removed; used by search (FR-21, EC-02).
+ * Cut to what the backup accepts: long PDFs can hold far more text than search needs.
+ */
 export async function setDocumentText(id: string, ocrText: string): Promise<void> {
-  await db.documents.update(id, { ocrText, updatedAt: new Date().toISOString() });
+  await db.documents.update(id, { ocrText: ocrText.slice(0, MAX_OCR_TEXT), updatedAt: new Date().toISOString() });
 }
 
 export async function setDocumentType(id: string, type: DocumentType): Promise<void> {

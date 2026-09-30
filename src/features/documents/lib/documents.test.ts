@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { createPurchase } from "@/features/purchases/lib/purchases";
-import { addDocument, getPages, listDocuments, removeDocument, setDocumentType } from "./documents";
+import { MAX_OCR_TEXT } from "@/lib/sync/schema";
+import { addDocument, getPages, listDocuments, removeDocument, setDocumentText, setDocumentType } from "./documents";
 
 const page = (text: string) => ({ original: new Blob([text]), mimeType: "image/jpeg" });
 
@@ -35,5 +36,12 @@ describe("documents lib", () => {
 
   it("refuses an empty document", async () => {
     await expect(addDocument({ purchaseId: "p", type: "receipt", pages: [] })).rejects.toThrow();
+  });
+
+  it("keeps read text within what the backup accepts", async () => {
+    const { id } = await createPurchase();
+    const document = await addDocument({ purchaseId: id, type: "warranty", pages: [page("terms")] });
+    await setDocumentText(document.id, "x".repeat(MAX_OCR_TEXT + 10));
+    expect((await db.documents.get(document.id))?.ocrText).toHaveLength(MAX_OCR_TEXT);
   });
 });

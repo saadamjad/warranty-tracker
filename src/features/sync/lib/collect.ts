@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import type { Purchase, VaultDocument, Warranty } from "@/lib/db/types";
-import type { DocumentWire, PageFileWire, PurchaseWire, WarrantyWire } from "@/lib/sync/schema";
+import type { z } from "zod";
+import { documentWire, purchaseWire, warrantyWire, type DocumentWire, type PageFileWire, type PurchaseWire, type WarrantyWire } from "@/lib/sync/schema";
 
 export type ChangeBatch = {
   purchases: PurchaseWire[];
@@ -40,13 +41,27 @@ export async function collectChanges(watermark: string, limit = 150): Promise<Ch
     if (parent) batchPurchases.set(parent.id, parent);
   }
 
+  // A record the backup would refuse must not hold back everything else (rule 10): it stays on this
+  // device and is left out, together with anything attached to it.
+  const purchasesOut = [...batchPurchases.values()].filter((record) => accepted(purchaseWire, record));
+  const sendable = new Set(purchasesOut.map((record) => record.id));
   const batchDocuments = batch.flatMap((item) => (item.kind === "document" ? [item.record] : []));
+  const documentsOut = (await Promise.all(batchDocuments.map(documentToWire))).filter(
+    (document): document is DocumentWire => document !== null && sendable.has(document.purchaseId) && accepted(documentWire, document),
+  );
+  const warrantiesOut = batch.flatMap((item) => (item.kind === "warranty" ? [item.record] : []));
   return {
-    purchases: [...batchPurchases.values()],
-    documents: (await Promise.all(batchDocuments.map(documentToWire))).filter((document): document is DocumentWire => document !== null),
-    warranties: batch.flatMap((item) => (item.kind === "warranty" ? [item.record] : [])),
+    purchases: purchasesOut,
+    documents: documentsOut,
+    warranties: warrantiesOut.filter((record) => sendable.has(record.purchaseId) && accepted(warrantyWire, record)),
     upTo,
   };
+}
+
+function accepted(schema: z.ZodType, record: { id: string }): boolean {
+  if (schema.safeParse(record).success) return true;
+  console.warn("Left out of backup: the backup can't accept this record", record.id);
+  return false;
 }
 
 /** Document metadata plus which page files exist; device-only fields stay behind. */
