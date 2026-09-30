@@ -30,6 +30,22 @@ describe("ReviewForm", () => {
     expect(saved?.fieldMeta.merchant?.source).toBe("user");
   });
 
+  it("explains an amount that isn't a number and doesn't save it", async () => {
+    const purchase = await createPurchase();
+    const onSaved = vi.fn();
+    render(<ReviewForm purchase={purchase} suggestions={{}} onSaved={onSaved} />);
+
+    fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "Rs 500" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(screen.getByRole("alert").textContent).toBe("Enter the amount as a number, like 1299.00.");
+    expect(onSaved).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByLabelText("Amount"), { target: { value: "1,299" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith(purchase.id));
+    expect((await getPurchase(purchase.id))?.amount).toBe("1299.00");
+  });
+
   it("lets the user fill in details when nothing was read (AC-14)", async () => {
     const purchase = await createPurchase();
     render(<ReviewForm purchase={purchase} suggestions={{}} onSaved={vi.fn()} />);

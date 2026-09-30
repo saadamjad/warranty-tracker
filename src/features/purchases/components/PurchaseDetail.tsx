@@ -8,6 +8,7 @@ import { ReturnSection } from "@/features/warranty/components/ReturnSection";
 import { BackupStatus } from "@/features/sync/components/BackupStatus";
 import { WarrantySection } from "@/features/warranty/components/WarrantySection";
 import type { Purchase, PurchaseFields } from "@/lib/db/types";
+import { FIELD_LIMITS } from "@/lib/sync/schema";
 import { displayTitle } from "../lib/display";
 import { PURCHASE_FIELDS } from "../lib/fieldConfig";
 import { usePurchase } from "../lib/hooks";
@@ -60,6 +61,7 @@ function PurchaseForm({ purchase }: { purchase: Purchase }) {
           key={purchase.title ?? ""}
           defaultValue={purchase.title ?? ""}
           placeholder={displayTitle(purchase)}
+          maxLength={FIELD_LIMITS.title}
           onBlur={(event) => {
             if (event.target.value !== (purchase.title ?? "")) save({ title: event.target.value });
           }}
@@ -77,11 +79,12 @@ function PurchaseForm({ purchase }: { purchase: Purchase }) {
 
       {!purchase.deletedAt && <DocumentsSection purchaseId={purchase.id} />}
 
-      {PURCHASE_FIELDS.map(({ field, label, input }) => (
+      {PURCHASE_FIELDS.map(({ field, label, input, maxLength }) => (
         <EditableField
           key={field}
           label={label}
           input={input}
+          maxLength={maxLength}
           value={purchase[field]}
           onSave={(value) => save({ [field]: value })}
         />

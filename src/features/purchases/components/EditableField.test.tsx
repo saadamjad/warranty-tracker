@@ -18,4 +18,20 @@ describe("EditableField", () => {
     fireEvent.blur(screen.getByLabelText("Notes"));
     expect(onSave).not.toHaveBeenCalled();
   });
+
+  it("explains an amount that isn't a number instead of saving it", () => {
+    const onSave = vi.fn();
+    render(<EditableField label="Amount" input="amount" value={undefined} onSave={onSave} />);
+    const input = screen.getByLabelText("Amount");
+    fireEvent.change(input, { target: { value: "Rs 500" } });
+    fireEvent.blur(input);
+    expect(onSave).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert").textContent).toBe("Enter the amount as a number, like 1299.00.");
+    expect(input.getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("limits text to what backup accepts", () => {
+    render(<EditableField label="Currency" input="text" value={undefined} maxLength={10} onSave={vi.fn()} />);
+    expect(screen.getByLabelText("Currency").getAttribute("maxLength")).toBe("10");
+  });
 });

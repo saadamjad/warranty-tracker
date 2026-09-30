@@ -3,6 +3,7 @@
 import { EditableField } from "@/features/purchases/components/EditableField";
 import { parseDay } from "@/lib/dates";
 import type { Purchase, Warranty } from "@/lib/db/types";
+import { FIELD_LIMITS } from "@/lib/sync/schema";
 import { useReceiptWarrantyMonths, useWarranties } from "../lib/hooks";
 import { deadlineState, describeWarranty, endDateFrom } from "../lib/status";
 import { addWarranty, removeWarranty, updateWarranty, type WarrantyFields } from "../lib/warranties";
@@ -65,7 +66,7 @@ function WarrantyCard({ warranty }: { warranty: Warranty }) {
   return (
     <article className="flex flex-col gap-3 rounded-card border border-line p-3">
       {badge && <StatusBadge {...badge} />}
-      <EditableField label="Provider" input="text" value={warranty.provider} onSave={save("provider")} />
+      <EditableField label="Provider" input="text" maxLength={FIELD_LIMITS.provider} value={warranty.provider} onSave={save("provider")} />
       <EditableField label="Starts" input="date" value={warranty.startDate} onSave={save("startDate")} />
       <EditableField label="Ends" input="date" value={warranty.endDate} onSave={save("endDate")} />
       {startDate && parseDay(startDate) && (
@@ -84,7 +85,7 @@ function WarrantyCard({ warranty }: { warranty: Warranty }) {
           <span className="text-muted">or set the end date</span>
         </div>
       )}
-      <EditableField label="Notes" input="multiline" value={warranty.notes} onSave={save("notes")} />
+      <EditableField label="Notes" input="multiline" maxLength={FIELD_LIMITS.notes} value={warranty.notes} onSave={save("notes")} />
       <button type="button" onClick={() => removeWarranty(warranty.id)} className="self-start text-sm text-danger hover:underline">
         Remove warranty
       </button>
