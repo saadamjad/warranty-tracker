@@ -14,7 +14,8 @@ export type DraftAction =
   | { type: "remove"; id: string }
   | { type: "move"; id: string; by: -1 | 1 }
   | { type: "rotate"; id: string }
-  | { type: "dismiss" };
+  | { type: "dismiss" }
+  | { type: "reset" };
 
 export const emptyDraft: Draft = { pages: [] };
 
@@ -38,6 +39,8 @@ export function draftReducer(draft: Draft, action: DraftAction): Draft {
       };
     case "dismiss":
       return { pages: draft.pages };
+    case "reset":
+      return emptyDraft;
   }
 }
 

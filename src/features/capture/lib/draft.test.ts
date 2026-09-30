@@ -50,4 +50,8 @@ describe("draftReducer", () => {
     expect(draft.pages).toHaveLength(20);
     expect(draft.message).toMatch(/up to 20 pages/);
   });
+
+  it("starts over when the user wants a different photo", () => {
+    expect(draftReducer(add(emptyDraft, photo()), { type: "reset" })).toBe(emptyDraft);
+  });
 });
