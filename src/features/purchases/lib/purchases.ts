@@ -1,5 +1,6 @@
 import { differenceInCalendarDays } from "date-fns";
 import { parseTimestamp } from "@/lib/dates";
+import { stamp } from "@/features/sync/lib/clock";
 import { addPendingPurge } from "@/features/sync/lib/state";
 import { db } from "@/lib/db";
 import type { Purchase, PurchaseFields } from "@/lib/db/types";
@@ -10,13 +11,9 @@ import { applyUserEdits } from "./fields";
 /** How long a deleted purchase stays restorable (D-19, D-29). */
 export const RESTORE_DAYS = 30;
 
-function nowIso(): string {
-  return new Date().toISOString();
-}
-
 /** Every field is optional: an empty purchase is a valid record (FR-12, EC-04/05). */
 export async function createPurchase(fields: PurchaseFields = {}): Promise<Purchase> {
-  const now = nowIso();
+  const now = await stamp();
   const empty: Purchase = { id: crypto.randomUUID(), createdAt: now, updatedAt: now, fieldMeta: {} };
   const purchase = applyUserEdits(empty, fields, now);
   await db.purchases.add(purchase);
@@ -33,10 +30,11 @@ export async function updatePurchase(id: string, edits: PurchaseFields): Promise
 
 /** Read-modify-write in one transaction, so concurrent edits can't lose each other. */
 export async function updatePurchaseWith(id: string, change: (current: Purchase, now: string) => Purchase): Promise<Purchase> {
+  const now = await stamp();
   return db.transaction("rw", db.purchases, async () => {
     const current = await db.purchases.get(id);
     if (!current) throw new Error(`Purchase ${id} not found`);
-    const next = change(current, nowIso());
+    const next = change(current, now);
     await db.purchases.put(next);
     return next;
   });
@@ -56,7 +54,7 @@ export async function listDeletedPurchases(): Promise<Purchase[]> {
 
 /** Soft delete (D-19): the purchase and its documents and warranties share one deletedAt. */
 export async function softDeletePurchase(id: string): Promise<void> {
-  const now = nowIso();
+  const now = await stamp();
   await db.transaction("rw", db.purchases, db.documents, db.warranties, async () => {
     const stamp = { deletedAt: now, updatedAt: now };
     await db.purchases.update(id, stamp);
@@ -70,7 +68,7 @@ export async function softDeletePurchase(id: string): Promise<void> {
  * Items the user removed individually beforehand stay removed (D-29).
  */
 export async function restorePurchase(id: string): Promise<void> {
-  const now = nowIso();
+  const now = await stamp();
   await db.transaction("rw", db.purchases, db.documents, db.warranties, async () => {
     const purchase = await db.purchases.get(id);
     if (!purchase?.deletedAt) return;
@@ -115,5 +113,5 @@ export async function removePurchaseLocally(id: string): Promise<void> {
 }
 
 export async function setRemindersOff(id: string, remindersOff: boolean): Promise<void> {
-  await db.purchases.update(id, { remindersOff, updatedAt: nowIso() });
+  await db.purchases.update(id, { remindersOff, updatedAt: await stamp() });
 }

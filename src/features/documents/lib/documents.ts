@@ -1,3 +1,4 @@
+import { stamp } from "@/features/sync/lib/clock";
 import { db } from "@/lib/db";
 import type { DocumentPage, DocumentType, VaultDocument } from "@/lib/db/types";
 import { MAX_OCR_TEXT } from "@/lib/sync/schema";
@@ -27,7 +28,7 @@ export async function addDocument({ purchaseId, type, pages, pageCount }: NewDoc
   if (pages.length === 0) throw new Error("A document needs at least one page");
   const originals = pages.map((page) => page.original);
   const sha256 = await hashPages(originals);
-  const now = new Date().toISOString();
+  const now = await stamp();
   const document: VaultDocument = {
     id: crypto.randomUUID(),
     purchaseId,
@@ -72,16 +73,16 @@ export async function getPages(documentId: string): Promise<DocumentPage[]> {
  * Cut to what the backup accepts: long PDFs can hold far more text than search needs.
  */
 export async function setDocumentText(id: string, ocrText: string): Promise<void> {
-  await db.documents.update(id, { ocrText: ocrText.slice(0, MAX_OCR_TEXT), updatedAt: new Date().toISOString() });
+  await db.documents.update(id, { ocrText: ocrText.slice(0, MAX_OCR_TEXT), updatedAt: await stamp() });
 }
 
 export async function setDocumentType(id: string, type: DocumentType): Promise<void> {
-  await db.documents.update(id, { type, updatedAt: new Date().toISOString() });
+  await db.documents.update(id, { type, updatedAt: await stamp() });
 }
 
 /** Soft delete a single document; the original stays until purged (rule 5, D-19). */
 export async function removeDocument(id: string): Promise<void> {
-  const now = new Date().toISOString();
+  const now = await stamp();
   await db.documents.update(id, { deletedAt: now, updatedAt: now });
 }
 
@@ -93,7 +94,7 @@ export async function findDocumentsByHash(sha256: string): Promise<VaultDocument
 
 /** Moves every live document of one purchase to another; only on the user's request (EC-17). */
 export async function moveDocuments(fromPurchaseId: string, toPurchaseId: string): Promise<void> {
-  const now = new Date().toISOString();
+  const now = await stamp();
   await db.transaction("rw", db.documents, db.purchases, async () => {
     await db.documents
       .where("purchaseId")

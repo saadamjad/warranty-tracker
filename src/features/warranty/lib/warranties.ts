@@ -1,5 +1,6 @@
 import { listDocuments } from "@/features/documents/lib/documents";
 import { findWarrantyMonths } from "@/features/extract/lib/labels";
+import { stamp } from "@/features/sync/lib/clock";
 import { db } from "@/lib/db";
 import type { Warranty } from "@/lib/db/types";
 
@@ -7,24 +8,20 @@ import type { Warranty } from "@/lib/db/types";
 
 export type WarrantyFields = Pick<Warranty, "provider" | "startDate" | "endDate" | "notes">;
 
-function nowIso(): string {
-  return new Date().toISOString();
-}
-
 /** A purchase can have many warranties, e.g. maker + extended (EC-28). All fields optional. */
 export async function addWarranty(purchaseId: string, fields: WarrantyFields = {}): Promise<Warranty> {
-  const now = nowIso();
+  const now = await stamp();
   const warranty: Warranty = { id: crypto.randomUUID(), purchaseId, createdAt: now, updatedAt: now, ...clean(fields) };
   await db.warranties.add(warranty);
   return warranty;
 }
 
 export async function updateWarranty(id: string, fields: WarrantyFields): Promise<void> {
-  await db.warranties.update(id, { ...clean(fields), updatedAt: nowIso() });
+  await db.warranties.update(id, { ...clean(fields), updatedAt: await stamp() });
 }
 
 export async function removeWarranty(id: string): Promise<void> {
-  const now = nowIso();
+  const now = await stamp();
   await db.warranties.update(id, { deletedAt: now, updatedAt: now });
 }
 
