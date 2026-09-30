@@ -8,12 +8,13 @@ import { purchasesWithSameFile } from "@/features/duplicates/lib/duplicates";
 import { ReadAndReview } from "@/features/extract/components/ReadAndReview";
 import { prepareOfflineReading } from "@/features/extract/lib/warmUp";
 import { EnterDetailsButton } from "@/features/purchases/components/EnterDetailsButton";
+import { deletePurchaseForever } from "@/features/purchases/lib/purchases";
 import type { DocumentType, Purchase } from "@/lib/db/types";
+import { purchaseHref } from "@/lib/routes";
 import { draftReducer, emptyDraft } from "../lib/draft";
 import { DraftError, draftHash, saveDraft } from "../lib/saveDraft";
 import { CaptureButtons } from "./CaptureButtons";
 import { PageList } from "./PageList";
-import { purchaseHref } from "@/lib/routes";
 
 type Props = { /** Adding a document to an existing purchase (FR-36). */ purchaseId?: string };
 
@@ -25,6 +26,7 @@ export function CaptureFlow({ purchaseId }: Props) {
   const [saveError, setSaveError] = useState<string>();
   const [saved, setSaved] = useState<{ purchaseId: string; documentId: string }>();
   const [sameFile, setSameFile] = useState<Purchase[]>([]);
+  const [removedNote, setRemovedNote] = useState(false);
   const hasPages = draft.pages.length > 0;
 
   useEffect(() => {
@@ -60,8 +62,20 @@ export function CaptureFlow({ purchaseId }: Props) {
     }
   }
 
+  /**
+   * The user tapped × to use a different photo: the purchase made from this one is removed
+   * for good (also from backup, if it got there) and capture starts over.
+   */
+  async function discard(purchaseToRemove: string) {
+    await deletePurchaseForever(purchaseToRemove);
+    dispatch({ type: "reset" });
+    setSaved(undefined);
+    setSaving(false);
+    setRemovedNote(true);
+  }
+
   if (saved) {
-    return <ReadAndReview {...saved} onDone={(id) => router.push(purchaseHref(id))} />;
+    return <ReadAndReview {...saved} onDone={(id) => router.push(purchaseHref(id))} onDiscard={() => discard(saved.purchaseId)} />;
   }
 
   const message = saveError ?? draft.message;
@@ -71,6 +85,11 @@ export function CaptureFlow({ purchaseId }: Props) {
     <div className="flex flex-col gap-5">
       <CaptureButtons hasPages={hasPages} onFiles={(files) => dispatch({ type: "add", files, makeId: () => crypto.randomUUID() })} />
       <p className="text-sm text-muted">Any photo is fine — you can check and fix the details next.</p>
+      {removedNote && !hasPages && (
+        <p role="status" className="text-sm">
+          Photo removed. Take or choose another.
+        </p>
+      )}
 
       {message && (
         <p role="alert" className="rounded-card bg-attention-surface p-3">

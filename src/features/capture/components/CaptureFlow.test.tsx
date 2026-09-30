@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { listDocuments } from "@/features/documents/lib/documents";
-import { getPurchase } from "@/features/purchases/lib/purchases";
+import { getPurchase, listPurchases } from "@/features/purchases/lib/purchases";
 import { db } from "@/lib/db";
 import { purchaseHref } from "@/lib/routes";
 import { CaptureFlow } from "./CaptureFlow";
@@ -56,5 +56,19 @@ describe("CaptureFlow", () => {
     fireEvent.click(screen.getByRole("button", { name: /instead$/ }));
     await waitFor(() => expect(push).toHaveBeenCalledWith(purchaseHref(first.purchaseId)));
     expect(await listDocuments(first.purchaseId)).toHaveLength(2);
+  });
+
+  it("lets the user remove the uploaded photo and choose another", async () => {
+    render(<CaptureFlow />);
+    fireEvent.change(screen.getByLabelText("Choose file"), { target: { files: [photo] } });
+    fireEvent.click(await screen.findByRole("button", { name: "Continue" }));
+    await screen.findByRole("heading", { name: "We found these details" });
+
+    fireEvent.click(await screen.findByRole("button", { name: "Remove this photo and choose another" }));
+
+    expect(await screen.findByText("Photo removed. Take or choose another.")).toBeDefined();
+    expect(screen.getByLabelText("Choose file")).toBeDefined();
+    expect(screen.queryByText(/page added/)).toBeNull();
+    expect(await listPurchases()).toEqual([]);
   });
 });
