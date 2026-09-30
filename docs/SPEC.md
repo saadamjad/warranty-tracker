@@ -126,6 +126,7 @@ no privacy claims stronger than reality. Each user's data isolated. Receipt read
 | D-34 | Local dev storage is S3Mock (`adobe/s3mock`), not MinIO: MinIO images are no longer on Docker Hub. Dev-only; prod stays Cloudflare R2 (D-23) |
 | D-35 | Change tracking uses `updatedAt` against a per-device sync watermark instead of an outbox: every change already stamps `updatedAt`, so none can be missed; re-pushing an unchanged record is harmless |
 | D-36 | Browser checks (`npm run e2e`) use `playwright-core` with the installed Chrome and `axe-core`, dev-only: offline, on-device reading and two-device sync can only be verified in a real browser. Run against a local production build before a release |
+| D-37 | Every value a device saves must be one the backup accepts: text inputs stop at the backup's field limits (`FIELD_LIMITS`), a typed amount is stored as a plain decimal ("1,299" → "1299.00") and one that isn't a number is refused with a hint, never guessed. Local changes are stamped after the sync watermark (D-35), and a purchase deleted forever is never recreated by an older push (D-29) |
 
 ## 9. Acceptance scenarios (must all pass for Definition of Done)
 AC-1 save receipt without account · AC-2 capture, review, fix one field, save · AC-3 save with missing fields ·
