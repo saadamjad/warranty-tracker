@@ -54,6 +54,9 @@ async function startWorker(onPageProgress: (progress: number) => void): Promise<
     langPath: "/vendor/tesseract/lang",
     gzip: true,
     workerBlobURL: false,
+    // Our service worker keeps these files offline (D-32). Tesseract's own copy in browser
+    // storage could be left half-written by a reload and was then trusted over the good one.
+    cacheMethod: "none",
     logger: (message) => {
       if (message.status === "recognizing text") onPageProgress(message.progress);
     },
