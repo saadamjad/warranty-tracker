@@ -18,8 +18,8 @@ describe("deadlineState (AC-9)", () => {
   });
 
   it("supports a shorter window for returns", () => {
-    expect(deadlineState("2026-10-05", today, 3).status).toBe("active");
-    expect(deadlineState("2026-10-02", today, 3).status).toBe("expiring");
+    expect(deadlineState("2026-10-05", today, 3)?.status).toBe("active");
+    expect(deadlineState("2026-10-02", today, 3)?.status).toBe("expiring");
   });
 });
 
@@ -27,6 +27,11 @@ describe("endDateFrom", () => {
   it("adds months, clamping to month end", () => {
     expect(endDateFrom("2026-03-14", 12)).toBe("2027-03-14");
     expect(endDateFrom("2026-01-31", 1)).toBe("2026-02-28");
+  });
+
+  it("gives nothing for an unreadable date", () => {
+    expect(endDateFrom("20266-01-01", 12)).toBeUndefined();
+    expect(deadlineState("20266-01-01")).toBeUndefined();
   });
 });
 

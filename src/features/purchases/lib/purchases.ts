@@ -1,4 +1,5 @@
-import { differenceInCalendarDays, parseISO } from "date-fns";
+import { differenceInCalendarDays } from "date-fns";
+import { parseTimestamp } from "@/lib/dates";
 import { addPendingPurge } from "@/features/sync/lib/state";
 import { db } from "@/lib/db";
 import type { Purchase, PurchaseFields } from "@/lib/db/types";
@@ -93,7 +94,7 @@ export async function countDocuments(purchaseId: string): Promise<number> {
 
 /** Days until a deleted purchase is removed for good; never negative. */
 export function daysLeftToRestore(deletedAt: string, today: Date = new Date()): number {
-  return Math.max(0, RESTORE_DAYS - differenceInCalendarDays(today, parseISO(deletedAt)));
+  return Math.max(0, RESTORE_DAYS - differenceInCalendarDays(today, parseTimestamp(deletedAt) ?? today));
 }
 
 /** Permanent removal, only from Recently Deleted after confirmation (D-29). Backup removes it too. */

@@ -26,16 +26,16 @@ export function upcomingDeadlines(purchases: Purchase[], warranties: Warranty[],
   for (const warranty of warranties) {
     const purchase = live.get(warranty.purchaseId);
     if (!purchase || !warranty.endDate || warranty.deletedAt) continue;
-    const { daysLeft } = deadlineState(warranty.endDate, today);
-    if (daysLeft >= 0 && daysLeft <= prefs.warrantyDaysBefore) {
+    const daysLeft = deadlineState(warranty.endDate, today)?.daysLeft;
+    if (daysLeft !== undefined && daysLeft >= 0 && daysLeft <= prefs.warrantyDaysBefore) {
       items.push({ purchaseId: purchase.id, targetId: warranty.id, kind: "warranty", title: displayTitle(purchase), date: warranty.endDate, daysLeft });
     }
   }
 
   for (const purchase of live.values()) {
     if (!purchase.returnDeadline) continue;
-    const { daysLeft } = deadlineState(purchase.returnDeadline, today);
-    if (daysLeft >= 0 && daysLeft <= prefs.returnDaysBefore) {
+    const daysLeft = deadlineState(purchase.returnDeadline, today)?.daysLeft;
+    if (daysLeft !== undefined && daysLeft >= 0 && daysLeft <= prefs.returnDaysBefore) {
       items.push({ purchaseId: purchase.id, targetId: purchase.id, kind: "return", title: displayTitle(purchase), date: purchase.returnDeadline, daysLeft });
     }
   }

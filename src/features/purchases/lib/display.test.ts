@@ -24,6 +24,10 @@ describe("formatDate", () => {
     expect(formatDate("2026-03-03")).toBe("3 Mar 2026");
     expect(formatDate(undefined)).toBeUndefined();
   });
+
+  it("shows an unreadable stored date as-is instead of crashing", () => {
+    expect(formatDate("20266-03-03")).toBe("20266-03-03");
+  });
 });
 
 describe("purchaseSummary", () => {

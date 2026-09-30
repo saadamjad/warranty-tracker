@@ -1,6 +1,7 @@
 "use client";
 
 import { EditableField } from "@/features/purchases/components/EditableField";
+import { parseDay } from "@/lib/dates";
 import type { Purchase, Warranty } from "@/lib/db/types";
 import { useReceiptWarrantyMonths, useWarranties } from "../lib/hooks";
 import { deadlineState, describeWarranty, endDateFrom } from "../lib/status";
@@ -26,7 +27,7 @@ export function WarrantySection({ purchase }: { purchase: Purchase }) {
       </h2>
       {warranties.status === "ready" &&
         warranties.value.map((warranty) => <WarrantyCard key={warranty.id} warranty={warranty} />)}
-      {offer && purchase.purchaseDate && <ReceiptWarrantyOffer months={offer} purchase={purchase} startDate={purchase.purchaseDate} />}
+      {offer && purchase.purchaseDate && parseDay(purchase.purchaseDate) && <ReceiptWarrantyOffer months={offer} purchase={purchase} startDate={purchase.purchaseDate} />}
       <button
         type="button"
         // Starts on the purchase date by default; it stays editable for install-date warranties (EC-07).
@@ -58,15 +59,16 @@ function ReceiptWarrantyOffer({ months, purchase, startDate }: { months: number;
 
 function WarrantyCard({ warranty }: { warranty: Warranty }) {
   const { startDate } = warranty;
+  const badge = warranty.endDate ? statusOf(warranty.endDate) : undefined;
   const save = (field: keyof WarrantyFields) => (value: string) => updateWarranty(warranty.id, { [field]: value });
 
   return (
     <article className="flex flex-col gap-3 rounded-card border border-line p-3">
-      {warranty.endDate && <StatusBadge {...statusOf(warranty.endDate)} />}
+      {badge && <StatusBadge {...badge} />}
       <EditableField label="Provider" input="text" value={warranty.provider} onSave={save("provider")} />
       <EditableField label="Starts" input="date" value={warranty.startDate} onSave={save("startDate")} />
       <EditableField label="Ends" input="date" value={warranty.endDate} onSave={save("endDate")} />
-      {startDate && (
+      {startDate && parseDay(startDate) && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="text-muted">Length:</span>
           {LENGTHS.map(({ months, label }) => (
@@ -92,5 +94,5 @@ function WarrantyCard({ warranty }: { warranty: Warranty }) {
 
 function statusOf(endDate: string) {
   const state = deadlineState(endDate);
-  return { status: state.status, text: describeWarranty(state) };
+  return state && { status: state.status, text: describeWarranty(state) };
 }

@@ -1,4 +1,5 @@
-import { addMonths, differenceInCalendarDays, format, parseISO } from "date-fns";
+import { addMonths, differenceInCalendarDays } from "date-fns";
+import { parseDay, toDay } from "@/lib/dates";
 
 /** "Expiring" window (D-14). */
 export const EXPIRING_DAYS = 30;
@@ -9,17 +10,20 @@ export type DeadlineState = { status: WarrantyStatus; daysLeft: number };
 
 /**
  * Status of a warranty or return date on `today`. The last day still counts as covered.
- * Expired items are shown as expired, never removed (EC-24).
+ * Expired items are shown as expired, never removed (EC-24). Undefined when the date is unreadable.
  */
-export function deadlineState(endDate: string, today: Date = new Date(), soonDays = EXPIRING_DAYS): DeadlineState {
-  const daysLeft = differenceInCalendarDays(parseISO(endDate), today);
+export function deadlineState(endDate: string, today: Date = new Date(), soonDays = EXPIRING_DAYS): DeadlineState | undefined {
+  const end = parseDay(endDate);
+  if (!end) return undefined;
+  const daysLeft = differenceInCalendarDays(end, today);
   if (daysLeft < 0) return { status: "expired", daysLeft };
   return { status: daysLeft <= soonDays ? "expiring" : "active", daysLeft };
 }
 
-/** End date from a start date and a length in months ("1 year" = 12). */
-export function endDateFrom(startDate: string, months: number): string {
-  return format(addMonths(parseISO(startDate), months), "yyyy-MM-dd");
+/** End date from a start date and a length in months ("1 year" = 12); undefined if the start is unreadable. */
+export function endDateFrom(startDate: string, months: number): string | undefined {
+  const start = parseDay(startDate);
+  return start && toDay(addMonths(start, months));
 }
 
 const days = (n: number) => (n === 1 ? "1 day" : `${n} days`);
