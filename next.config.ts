@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 
 const nextConfig: NextConfig = {
   async headers() {
@@ -25,4 +26,8 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// `next dev` gets its own folder: running `next build` while the dev server is up used to
+// overwrite its files and every page answered "Internal Server Error".
+export default function config(phase: string): NextConfig {
+  return phase === PHASE_DEVELOPMENT_SERVER ? { ...nextConfig, distDir: ".next-dev" } : nextConfig;
+}
