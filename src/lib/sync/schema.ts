@@ -10,6 +10,25 @@ const id = z.uuid();
 
 export const MAX_BATCH = 200;
 
+/** Longest text the backup accepts per field. Inputs use the same limits, so a saved value can always be backed up. */
+export const FIELD_LIMITS = {
+  title: 300,
+  productName: 300,
+  model: 100,
+  serial: 100,
+  merchant: 300,
+  currency: 10,
+  reference: 100,
+  notes: 5000,
+  provider: 300,
+} as const;
+
+/** Read text is kept for search only; longer text is cut to this. */
+export const MAX_OCR_TEXT = 100_000;
+
+/** Amounts are stored as plain decimals, e.g. "1299.00". */
+export const AMOUNT_PATTERN = /^\d{1,12}(\.\d{1,2})?$/;
+
 const fieldMeta = z.object({
   source: z.enum(["extracted", "user"]),
   confidence: z.number().min(0).max(1).optional(),
@@ -26,16 +45,16 @@ export const purchaseWire = z.object({
   createdAt: timestamp,
   updatedAt: timestamp,
   deletedAt: timestamp.optional(),
-  title: text(300),
-  productName: text(300),
-  model: text(100),
-  serial: text(100),
-  merchant: text(300),
+  title: text(FIELD_LIMITS.title),
+  productName: text(FIELD_LIMITS.productName),
+  model: text(FIELD_LIMITS.model),
+  serial: text(FIELD_LIMITS.serial),
+  merchant: text(FIELD_LIMITS.merchant),
   purchaseDate: day.optional(),
-  amount: z.string().regex(/^\d{1,12}(\.\d{1,2})?$/).optional(),
-  currency: text(10),
-  reference: text(100),
-  notes: text(5000),
+  amount: z.string().regex(AMOUNT_PATTERN).optional(),
+  currency: text(FIELD_LIMITS.currency),
+  reference: text(FIELD_LIMITS.reference),
+  notes: text(FIELD_LIMITS.notes),
   returnDeadline: day.optional(),
   fieldMeta: z.partialRecord(purchaseFields, fieldMeta),
   remindersOff: z.boolean().optional(),
@@ -58,7 +77,7 @@ export const documentWire = z.object({
   pageCount: z.number().int().min(1).max(20),
   sha256: z.string().regex(/^[0-9a-f]{64}$/),
   sizeBytes: z.number().int().min(0).max(20 * 20 * 1024 * 1024),
-  ocrText: text(100_000),
+  ocrText: text(MAX_OCR_TEXT),
   files: z.array(pageFileWire).min(1).max(20),
 });
 
@@ -68,10 +87,10 @@ export const warrantyWire = z.object({
   createdAt: timestamp,
   updatedAt: timestamp,
   deletedAt: timestamp.optional(),
-  provider: text(300),
+  provider: text(FIELD_LIMITS.provider),
   startDate: day.optional(),
   endDate: day.optional(),
-  notes: text(5000),
+  notes: text(FIELD_LIMITS.notes),
 });
 
 export const pushBody = z.object({

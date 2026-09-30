@@ -1,3 +1,4 @@
+import { normaliseAmount } from "@/features/purchases/lib/amount";
 import { updatePurchaseWith } from "@/features/purchases/lib/purchases";
 import type { Purchase, PurchaseField, PurchaseFields } from "@/lib/db/types";
 import type { ExtractedFields, Found } from "./types";
@@ -28,13 +29,13 @@ export function initialValues(purchase: Purchase, suggestions: Suggestions): Rec
 /**
  * Applies the reviewed form. A value left as suggested is marked extracted (with its
  * confidence); anything the user typed or chose is marked user. Unchanged user values
- * keep their meta, and empty stays empty (rule 6).
+ * keep their meta, and empty stays empty (rule 6). Throws InvalidAmountError for an amount that isn't a number.
  */
 export function applyReview(purchase: Purchase, suggestions: Suggestions, submitted: PurchaseFields, now: string): Purchase {
   const next: Purchase = { ...purchase, fieldMeta: { ...purchase.fieldMeta }, updatedAt: now };
 
   for (const field of REVIEW_FIELDS) {
-    const value = submitted[field]?.trim() || undefined;
+    const value = field === "amount" ? normaliseAmount(submitted[field]) : submitted[field]?.trim() || undefined;
     const suggestion = suggestions[field];
     const unchanged = value === purchase[field];
 

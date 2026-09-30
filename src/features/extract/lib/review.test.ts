@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { InvalidAmountError } from "@/features/purchases/lib/amount";
 import type { Purchase } from "@/lib/db/types";
 import { applyReview, initialValues, type Suggestions } from "./review";
 
@@ -45,5 +46,10 @@ describe("applyReview", () => {
     const meta = { source: "user" as const, updatedAt: "2026-01-01T00:00:00.000Z" };
     const edited: Purchase = { ...empty, merchant: "Metro Thokar", fieldMeta: { merchant: meta } };
     expect(applyReview(edited, suggestions, { merchant: "Metro Thokar" }, now).fieldMeta.merchant).toBe(meta);
+  });
+
+  it("stores a typed amount in the form backup accepts, and refuses a non-number", () => {
+    expect(applyReview(empty, suggestions, { amount: "1,299" }, now).amount).toBe("1299.00");
+    expect(() => applyReview(empty, suggestions, { amount: "Rs 500" }, now)).toThrow(InvalidAmountError);
   });
 });

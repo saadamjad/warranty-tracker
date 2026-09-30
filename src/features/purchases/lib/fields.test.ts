@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Purchase } from "@/lib/db/types";
+import { InvalidAmountError } from "./amount";
 import { applyUserEdits } from "./fields";
 
 const base: Purchase = {
@@ -32,5 +33,13 @@ describe("applyUserEdits", () => {
     const next = applyUserEdits(base, { notes: "Gift" }, now);
     expect(next.fieldMeta.merchant?.source).toBe("extracted");
     expect(base.notes).toBeUndefined();
+  });
+
+  it("stores a typed amount in the form backup accepts", () => {
+    expect(applyUserEdits(base, { amount: "1,299.00" }, now).amount).toBe("1299.00");
+  });
+
+  it("refuses an amount that isn't a number", () => {
+    expect(() => applyUserEdits(base, { amount: "Rs 500" }, now)).toThrow(InvalidAmountError);
   });
 });
