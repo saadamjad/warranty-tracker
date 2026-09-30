@@ -18,9 +18,11 @@ const USER_BATCH = 200;
 
 type Send = (mail: Mail) => Promise<void>;
 
-export async function sendDueReminderEmails(today: Date = new Date(), send: Send = sendMail): Promise<{ emails: number; reminders: number }> {
+type Totals = { emails: number; reminders: number; failed: number };
+
+export async function sendDueReminderEmails(today: Date = new Date(), send: Send = sendMail): Promise<Totals> {
   let cursor: string | undefined;
-  const totals = { emails: 0, reminders: 0 };
+  const totals: Totals = { emails: 0, reminders: 0, failed: 0 };
 
   for (;;) {
     const users = await prisma.user.findMany({
@@ -34,7 +36,16 @@ export async function sendDueReminderEmails(today: Date = new Date(), send: Send
       const prefs: ReminderPrefs = user.reminderPref
         ? { ...DEFAULT_REMINDER_PREFS, ...user.reminderPref, emailReminders: user.reminderPref.emailEnabled }
         : DEFAULT_REMINDER_PREFS;
-      const sent = await remindUser(user.id, user.email!, prefs, today, send);
+      let sent: number;
+      try {
+        sent = await remindUser(user.id, user.email!, prefs, today, send);
+      } catch (error) {
+        // One bad address or a brief mail outage must not stop everyone else's reminders.
+        // Nothing was logged for this user, so tomorrow's run tries again.
+        console.error("reminder email failed", { userId: user.id, error });
+        totals.failed++;
+        continue;
+      }
       if (sent) {
         totals.emails++;
         totals.reminders += sent;
