@@ -16,11 +16,15 @@ export function checklist() {
   const results = [];
   return {
     async check(id, name, fn) {
+      const started = Date.now();
+      if (process.env.E2E_VERBOSE) console.log(`… ${id} ${name}`);
       try {
         await fn();
         results.push(["PASS", id, name]);
+        if (process.env.E2E_VERBOSE) console.log(`  done in ${((Date.now() - started) / 1000).toFixed(1)}s`);
       } catch (error) {
         results.push(["FAIL", id, `${name} — ${error.message.split("\n")[0]}`]);
+        if (process.env.E2E_VERBOSE) console.log(`  FAILED after ${((Date.now() - started) / 1000).toFixed(1)}s: ${error.message.split("\n")[0]}`);
       }
     },
     report() {

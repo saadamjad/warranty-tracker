@@ -12,6 +12,41 @@ await page.goto(BASE);
 await page.evaluate(() => navigator.serviceWorker.ready);
 await page.reload();
 
+await check("offline", "Reading works offline without ever having read a receipt online", async () => {
+  const fresh = await (await browser.newContext()).newPage();
+  if (process.env.E2E_VERBOSE) {
+    fresh.on("console", (message) => message.type() === "warning" && console.log("  [offline page]", message.text().slice(0, 300)));
+    fresh.context().on("requestfailed", (request) => console.log("  [offline failed]", request.url().slice(-60), request.failure()?.errorText));
+  }
+  await fresh.goto(BASE);
+  await fresh.evaluate(() => navigator.serviceWorker.ready);
+  await fresh.reload();
+  await fresh.goto(`${BASE}/add`); // opening capture online prepares the reader
+  // Ready once the service worker itself holds the reader's worker, engine and language files.
+  const worker = fresh.context().serviceWorkers()[0] ?? (await fresh.context().waitForEvent("serviceworker"));
+  const deadline = Date.now() + 60_000;
+  for (;;) {
+    const cached = await worker.evaluate(async () => {
+      const urls = [];
+      for (const key of await caches.keys()) for (const request of await (await caches.open(key)).keys()) urls.push(request.url);
+      return urls;
+    });
+    if (["worker.min.js", "-lstm.wasm.js", "eng.traineddata.gz"].every((file) => cached.some((url) => url.endsWith(file)))) break;
+    assert(Date.now() < deadline, `reader files not cached: ${cached.filter((url) => url.includes("vendor")).join(", ")}`);
+    await fresh.waitForTimeout(1000);
+  }
+  await fresh.context().setOffline(true);
+  await fresh.reload();
+  await uploadImage(fresh, "offline.png", await drawReceipt(fresh, ["LOCAL HARDWARE", "TOTAL 6,750.00"]));
+  await fresh.getByRole("button", { name: "Continue" }).click();
+  const found = fresh.getByRole("heading", { name: "We found these details" });
+  await found.waitFor({ timeout: 90_000 }).catch(async (error) => {
+    throw new Error(`${error.message.split("\n")[0]} — screen: ${(await fresh.locator("main").innerText()).replace(/\n+/g, " | ").slice(0, 160)}`);
+  });
+  assert((await fresh.locator("#review-amount").inputValue()) === "6750.00", "amount not read offline");
+  await fresh.context().close();
+});
+
 let kettleId;
 await check("AC-1/2", "Save without an account: capture → review → fix a field → save", async () => {
   await page.getByRole("link", { name: "+ Add Purchase" }).click();
