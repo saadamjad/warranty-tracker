@@ -18,16 +18,34 @@ const schema = z.object({
   CRON_SECRET: z.string().optional(),
   /** Public address used in email links. */
   APP_URL: z.url().default("http://localhost:3000"),
+  /** Set by Vercel; "production" turns on the live-site checks below. */
+  VERCEL_ENV: z.string().optional(),
 });
 
-export type ServerEnv = z.infer<typeof schema>;
+const LOCAL_URL = /^http:\/\/(localhost|127\.0\.0\.1)/;
+
+// Dev defaults (localhost links, sign-in links printed to logs, no cron secret)
+// would be unsafe on the public site, so the live deployment refuses to start with them.
+const liveSchema = schema.superRefine((env, ctx) => {
+  if (env.VERCEL_ENV !== "production") return;
+  const fail = (path: string, message: string) => ctx.addIssue({ code: "custom", path: [path], message });
+  if (LOCAL_URL.test(env.APP_URL) || !env.APP_URL.startsWith("https://")) fail("APP_URL", "must be the public https address");
+  if (env.AUTH_SECRET.length < 32) fail("AUTH_SECRET", "must be at least 32 characters");
+  if (!env.CRON_SECRET || env.CRON_SECRET.length < 32) fail("CRON_SECRET", "must be at least 32 characters");
+  for (const key of ["SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD"] as const) {
+    if (!env[key]) fail(key, "is required so sign-in links are emailed, not logged");
+  }
+  if (env.EMAIL_FROM.includes("example.com")) fail("EMAIL_FROM", "must be a real sending address");
+});
+
+export type ServerEnv = z.infer<typeof liveSchema>;
 
 let cached: ServerEnv | undefined;
 
 // Parsed lazily so `next build` and tests don't require server secrets.
 export function serverEnv(): ServerEnv {
   if (!cached) {
-    const result = schema.safeParse(process.env);
+    const result = liveSchema.safeParse(process.env);
     if (!result.success) {
       const missing = result.error.issues.map((issue) => issue.path.join(".")).join(", ");
       throw new Error(`Invalid server environment: ${missing}. See .env.example.`);
