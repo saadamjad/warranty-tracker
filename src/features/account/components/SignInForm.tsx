@@ -9,6 +9,7 @@ type Props = { error?: string };
 const SIGN_IN_ERRORS: Record<string, string> = {
   Verification: "That sign-in link didn't work — it may have expired or been used. Enter your email to get a new one.",
   Configuration: "We couldn't send a sign-in email just now. If you asked for several, wait 10 minutes and try again.",
+  TooMany: "Too many sign-in emails were asked for from this connection. Please wait an hour and try again.",
 };
 
 /**

@@ -5,20 +5,16 @@ import Google from "next-auth/providers/google";
 import Nodemailer from "next-auth/providers/nodemailer";
 import { serverEnv } from "./env";
 import { prisma } from "./prisma";
-import { recentSignInLinks } from "./repo";
+import { isRateLimited } from "./rateLimit";
 
-/** Sign-in links are valid for a day (Auth.js default). */
-const LINK_LIFETIME_MS = 24 * 60 * 60 * 1000;
-/** At most this many sign-in emails per address per window, so the form can't be used to spam someone. */
-const MAX_LINKS = 3;
-const WINDOW_MINUTES = 10;
+/** Sign-in links expire after 30 minutes: long enough to switch to the inbox, short if one leaks. */
+const LINK_LIFETIME_SECONDS = 30 * 60;
 
 export class TooManySignInEmails extends Error {}
 
 function rateLimited(send: NodemailerConfig["sendVerificationRequest"]): NodemailerConfig["sendVerificationRequest"] {
   return async (params) => {
-    // Auth.js stores the new link while sending, so count only earlier ones.
-    if ((await recentSignInLinks(params.identifier, WINDOW_MINUTES, LINK_LIFETIME_MS)) >= MAX_LINKS) {
+    if (await isRateLimited("signInEmail", params.identifier.toLowerCase())) {
       throw new TooManySignInEmails(`Too many sign-in emails for one address`);
     }
     await send(params);
@@ -36,11 +32,13 @@ function authConfig(): NextAuthConfig {
           auth: { user: env.SMTP_USER, pass: env.SMTP_PASSWORD },
         },
         from: env.EMAIL_FROM,
+        maxAge: LINK_LIFETIME_SECONDS,
       })
     : Nodemailer({
         // No SMTP in local dev (D-21): print the sign-in link instead of sending it.
         server: { jsonTransport: true },
         from: env.EMAIL_FROM,
+        maxAge: LINK_LIFETIME_SECONDS,
         sendVerificationRequest: ({ identifier, url }) => {
           console.info(`\nSign-in link for ${identifier}:\n${url}\n`);
         },

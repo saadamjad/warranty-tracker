@@ -179,9 +179,25 @@ export async function saveReminderPrefs(userId: string, prefs: ReminderPrefsWire
  * Sign-in links requested for an email in the last `minutes`. Auth.js stores each link as a
  * token valid for `linkLifetimeMs`, so recent ones expire later than now + lifetime − window.
  */
-export async function recentSignInLinks(email: string, minutes: number, linkLifetimeMs: number): Promise<number> {
-  const since = new Date(Date.now() + linkLifetimeMs - minutes * 60_000);
-  return prisma.verificationToken.count({ where: { identifier: email, expires: { gt: since } } });
+/**
+ * Counts one hit for `key` in a fixed window and returns the hits so far, including this one.
+ * A single upsert, so simultaneous requests can't all slip under the limit.
+ */
+export async function hitRateLimit(key: string, windowMs: number): Promise<number> {
+  const windowStart = new Date(Date.now() - windowMs);
+  const [row] = await prisma.$queryRaw<{ count: number }[]>`
+    INSERT INTO "RateLimit" ("key", "windowStart", "count") VALUES (${key}, now(), 1)
+    ON CONFLICT ("key") DO UPDATE SET
+      "count" = CASE WHEN "RateLimit"."windowStart" < ${windowStart} THEN 1 ELSE "RateLimit"."count" + 1 END,
+      "windowStart" = CASE WHEN "RateLimit"."windowStart" < ${windowStart} THEN now() ELSE "RateLimit"."windowStart" END
+    RETURNING "count"`;
+  return row.count;
+}
+
+/** Drops counters whose window ended before `cutoff`; they would restart on their next hit anyway. */
+export async function clearRateLimitsBefore(cutoff: Date): Promise<number> {
+  const { count } = await prisma.rateLimit.deleteMany({ where: { windowStart: { lt: cutoff } } });
+  return count;
 }
 
 // ---- Scheduled jobs (not user-scoped: they run for everyone, from the cron route only) ----

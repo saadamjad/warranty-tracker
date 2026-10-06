@@ -216,3 +216,13 @@ model Change {
   // Push checks whether a purchase was deleted forever before accepting it again.
   @@index([userId, entityId])
 }
+
+// ---------- Abuse protection ----------
+
+// Fixed-window counters (sign-in emails per address/IP, API calls per user). One row per key;
+// a hit in an expired window restarts it. Old rows are cleared by the purge cron.
+model RateLimit {
+  key         String   @id
+  windowStart DateTime
+  count       Int
+}
