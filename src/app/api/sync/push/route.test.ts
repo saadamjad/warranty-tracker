@@ -12,6 +12,8 @@ vi.mock("@/lib/server/repo", async () => {
   return { ForbiddenRecordError, pushChanges: (...args: unknown[]) => pushChanges(...args) };
 });
 vi.mock("@/lib/server/auth", () => ({ auth: vi.fn() }));
+const isRateLimited = vi.fn(async () => false);
+vi.mock("@/lib/server/rateLimit", () => ({ isRateLimited: (...args: unknown[]) => isRateLimited(...(args as [])) }));
 
 const { POST } = await import("./route");
 const { ForbiddenRecordError } = await import("@/lib/server/repo");
@@ -30,6 +32,14 @@ describe("POST /api/sync/push", () => {
   it("rejects invalid input before touching data", async () => {
     sessionUserId.mockResolvedValueOnce("u1");
     expect((await POST(request({ purchases: "nope" }))).status).toBe(400);
+    expect(pushChanges).not.toHaveBeenCalled();
+  });
+
+  it("refuses a caller over the rate limit before touching data", async () => {
+    sessionUserId.mockResolvedValueOnce("u1");
+    isRateLimited.mockResolvedValueOnce(true);
+    expect((await POST(request(empty))).status).toBe(429);
+    expect(isRateLimited).toHaveBeenCalledWith("api", "u1");
     expect(pushChanges).not.toHaveBeenCalled();
   });
 

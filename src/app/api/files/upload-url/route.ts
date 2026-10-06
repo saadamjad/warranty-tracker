@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { jsonError, parseJson, sessionUserId } from "@/lib/server/http";
+import { apiRateLimit, jsonError, parseJson, sessionUserId } from "@/lib/server/http";
 import { documentKeys } from "@/lib/server/repo";
 import { uploadUrl } from "@/lib/server/storage";
 import { uploadUrlBody, type FileUrl } from "@/lib/sync/files";
@@ -8,6 +8,8 @@ import { uploadUrlBody, type FileUrl } from "@/lib/sync/files";
 export async function POST(request: Request) {
   const userId = await sessionUserId();
   if (!userId) return jsonError(401, "Sign in to back up.");
+  const limited = await apiRateLimit(userId);
+  if (limited) return limited;
   const body = await parseJson(request, uploadUrlBody);
   if (!body) return jsonError(400, "Invalid request.");
 
