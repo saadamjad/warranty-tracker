@@ -1,7 +1,7 @@
 // Offline support (FR-25, FR-26, D-33). Plain JS: served as-is from /sw.js.
 // Pages are static shells, so caching each once lets the app open offline for any purchase.
 
-const VERSION = "v3";
+const VERSION = "v4";
 const PAGES = `pages-${VERSION}`;
 const ASSETS = `assets-${VERSION}`;
 const SHELL = ["/", "/add", "/p", "/search", "/settings", "/settings/deleted", "/privacy", "/signin"];

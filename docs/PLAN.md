@@ -85,7 +85,7 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [ ] Deploy: Vercel + Neon + R2 + SMTP env; README setup steps
 
 ## Phase 12 — Launch readiness  (audit 2026-10-06)
-- [ ] Security upgrades: pdfjs-dist ≥6.2.108, nodemailer 10, `npm audit --omit=dev` clean, pin next-auth beta
+- [x] Security upgrades: pdfjs-dist ≥6.2.108, nodemailer 10, `npm audit --omit=dev` clean, pin next-auth beta
 - [ ] Fail-fast production env (APP_URL https, SMTP, CRON_SECRET, AUTH_SECRET) checked at boot
 - [ ] Automatic migrations: `directUrl`, `vercel-build` runs `prisma migrate deploy`
 - [ ] Rate limits: magic link per email + IP (Postgres limiter), sync/files APIs per user; link lifetime 30 min

@@ -30,7 +30,7 @@ Progress and scope: [`docs/PLAN.md`](docs/PLAN.md).
 | [`docs/CODING_STANDARDS.md`](docs/CODING_STANDARDS.md) | How code is written |
 
 ## Run locally
-Requires Node 20+ and Docker.
+Requires Node 22.13+ (see `.nvmrc`) and Docker.
 ```bash
 npm install                      # also copies reader/PDF worker files into public/vendor
 cp .env.example .env.local       # then set AUTH_SECRET: npx auth secret

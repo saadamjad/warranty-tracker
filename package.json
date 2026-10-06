@@ -45,9 +45,9 @@
     "jszip": "^3.10.2",
     "minisearch": "^7.2.0",
     "next": "15.5.26",
-    "next-auth": "^5.0.0-beta.32",
-    "nodemailer": "^8.0.11",
-    "pdfjs-dist": "^5.6.205",
+    "next-auth": "5.0.0-beta.32",
+    "nodemailer": "^10.0.15",
+    "pdfjs-dist": "^6.4.299",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "tesseract.js": "^7.0.0",
@@ -73,6 +73,12 @@
     "vitest": "^4.1.11"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13"
+  },
+  "overrides": {
+    "nodemailer": "$nodemailer",
+    "postcss": "^8.5.29",
+    "source-map-js": "^1.2.2",
+    "deepmerge-ts": "^8.0.2"
   }
 }
