@@ -83,3 +83,19 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] AC-1..20 all pass in Chrome via `npm run e2e` (incl. delete → Recently Deleted → restore), plus two-device sync
 - [x] Accessibility (labels, focus, contrast), phone-width layout: axe clean on every page, light and dark, 375 px
 - [ ] Deploy: Vercel + Neon + R2 + SMTP env; README setup steps
+
+## Phase 12 — Launch readiness  (audit 2026-10-06)
+- [ ] Security upgrades: pdfjs-dist ≥6.2.108, nodemailer 10, `npm audit --omit=dev` clean, pin next-auth beta
+- [ ] Fail-fast production env (APP_URL https, SMTP, CRON_SECRET, AUTH_SECRET) checked at boot
+- [ ] Automatic migrations: `directUrl`, `vercel-build` runs `prisma migrate deploy`
+- [ ] Rate limits: magic link per email + IP (Postgres limiter), sync/files APIs per user; link lifetime 30 min
+- [ ] Content-Security-Policy (nonce) without breaking reading, PDFs, offline
+- [ ] `trustHost` only on Vercel; upload size ≤ stored size, no uploads for deleted docs, per-user storage quota
+- [ ] Terms page; privacy page lists processors, retention, contact
+- [ ] Error pages: global-error, error, not-found (data still safe, retry, home)
+- [ ] Device storage: persist(), quota-full message, usage in Settings
+- [ ] Sync: watermark race, deterministic merge ties, real-offline detection, versionchange handler
+- [ ] Account deletion removes every stored file (prefix delete + retry in purge)
+- [ ] Monitoring: onRequestError, /api/health, cron counts; mailer `secure` on 465
+- [ ] Service worker/vendor versioning + immutable cache
+- [ ] SEO metadata, robots, sitemap, OG image; remove starter SVGs; nightly e2e in CI
