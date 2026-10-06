@@ -54,9 +54,8 @@ npm run e2e
 
 ## Deploy (free tiers: Vercel + Neon + Cloudflare R2 + Resend)
 1. **Database — [Neon](https://neon.tech):** create a project. Use the *pooled* connection string for the app
-   (`DATABASE_URL`, add `?sslmode=require&pgbouncer=true&connection_limit=1`) and run migrations once from your
-   machine with the *direct* string: `DATABASE_URL="<direct url>" npx prisma migrate deploy`.
-   Repeat after pulling changes that add files under `prisma/migrations/`.
+   (`DATABASE_URL`, add `?sslmode=require&pgbouncer=true&connection_limit=1`) and the *direct* string as
+   `DIRECT_URL`. Production deploys apply new migrations automatically (`npm run vercel-build`); previews never do.
 2. **Files — [Cloudflare R2](https://developers.cloudflare.com/r2/):** create a bucket and an API token with
    read/write on it. Set `S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com`, `S3_REGION=auto`,
    `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. Browsers upload directly, so add a CORS policy:
