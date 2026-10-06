@@ -176,20 +176,17 @@ export async function saveReminderPrefs(userId: string, prefs: ReminderPrefsWire
 }
 
 /**
- * Sign-in links requested for an email in the last `minutes`. Auth.js stores each link as a
- * token valid for `linkLifetimeMs`, so recent ones expire later than now + lifetime − window.
- */
-/**
  * Counts one hit for `key` in a fixed window and returns the hits so far, including this one.
- * A single upsert, so simultaneous requests can't all slip under the limit.
+ * A single upsert, so simultaneous requests can't all slip under the limit. All times come
+ * from the database clock, so app servers with drifting clocks agree on the window.
  */
 export async function hitRateLimit(key: string, windowMs: number): Promise<number> {
-  const windowStart = new Date(Date.now() - windowMs);
   const [row] = await prisma.$queryRaw<{ count: number }[]>`
+    WITH bounds AS (SELECT now() - make_interval(secs => ${windowMs / 1000}) AS expired)
     INSERT INTO "RateLimit" ("key", "windowStart", "count") VALUES (${key}, now(), 1)
     ON CONFLICT ("key") DO UPDATE SET
-      "count" = CASE WHEN "RateLimit"."windowStart" < ${windowStart} THEN 1 ELSE "RateLimit"."count" + 1 END,
-      "windowStart" = CASE WHEN "RateLimit"."windowStart" < ${windowStart} THEN now() ELSE "RateLimit"."windowStart" END
+      "count" = CASE WHEN "RateLimit"."windowStart" < (SELECT expired FROM bounds) THEN 1 ELSE "RateLimit"."count" + 1 END,
+      "windowStart" = CASE WHEN "RateLimit"."windowStart" < (SELECT expired FROM bounds) THEN now() ELSE "RateLimit"."windowStart" END
     RETURNING "count"`;
   return row.count;
 }

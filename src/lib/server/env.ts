@@ -22,20 +22,18 @@ const schema = z.object({
   VERCEL_ENV: z.string().optional(),
 });
 
-const LOCAL_URL = /^http:\/\/(localhost|127\.0\.0\.1)/;
-
 // Dev defaults (localhost links, sign-in links printed to logs, no cron secret)
 // would be unsafe on the public site, so the live deployment refuses to start with them.
 const liveSchema = schema.superRefine((env, ctx) => {
   if (env.VERCEL_ENV !== "production") return;
   const fail = (path: string, message: string) => ctx.addIssue({ code: "custom", path: [path], message });
-  if (LOCAL_URL.test(env.APP_URL) || !env.APP_URL.startsWith("https://")) fail("APP_URL", "must be the public https address");
+  if (!env.APP_URL.startsWith("https://")) fail("APP_URL", "must be the public https address");
   if (env.AUTH_SECRET.length < 32) fail("AUTH_SECRET", "must be at least 32 characters");
   if (!env.CRON_SECRET || env.CRON_SECRET.length < 32) fail("CRON_SECRET", "must be at least 32 characters");
   for (const key of ["SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD"] as const) {
     if (!env[key]) fail(key, "is required so sign-in links are emailed, not logged");
   }
-  if (env.EMAIL_FROM.includes("example.com")) fail("EMAIL_FROM", "must be a real sending address");
+  if (/@example\.com>?$/.test(env.EMAIL_FROM)) fail("EMAIL_FROM", "must be a real sending address");
 });
 
 export type ServerEnv = z.infer<typeof liveSchema>;
