@@ -89,7 +89,7 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 - [x] Fail-fast production env (APP_URL https, SMTP, CRON_SECRET, AUTH_SECRET) checked at boot
 - [x] Automatic migrations: `DIRECT_URL`, `vercel-build` runs `prisma migrate deploy`
 - [x] Rate limits: magic link per email + IP (Postgres limiter), sync/files APIs per user; link lifetime 30 min
-- [ ] Content-Security-Policy (nonce) without breaking reading, PDFs, offline
+- [x] Content-Security-Policy (header policy; nonces would break prerendered offline pages)
 - [ ] `trustHost` only on Vercel; upload size ≤ stored size, no uploads for deleted docs, per-user storage quota
 - [ ] Terms page; privacy page lists processors, retention, contact
 - [ ] Error pages: global-error, error, not-found (data still safe, retry, home)

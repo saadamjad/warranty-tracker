@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
+import { contentSecurityPolicy } from "./src/lib/csp";
 
-const nextConfig: NextConfig = {
+const withConfig = (dev: boolean): NextConfig => ({
   async headers() {
     return [
       {
@@ -15,6 +16,10 @@ const nextConfig: NextConfig = {
           // Camera for receipts on this site only; nothing else (SPEC §7: no unrelated permissions).
           { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(), payment=()" },
           { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+          {
+            key: "Content-Security-Policy",
+            value: contentSecurityPolicy({ storageEndpoint: process.env.S3_ENDPOINT, dev }),
+          },
         ],
       },
       {
@@ -24,10 +29,10 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-};
+});
 
 // `next dev` gets its own folder: running `next build` while the dev server is up used to
 // overwrite its files and every page answered "Internal Server Error".
 export default function config(phase: string): NextConfig {
-  return phase === PHASE_DEVELOPMENT_SERVER ? { ...nextConfig, distDir: ".next-dev" } : nextConfig;
+  return phase === PHASE_DEVELOPMENT_SERVER ? { ...withConfig(true), distDir: ".next-dev" } : withConfig(false);
 }
