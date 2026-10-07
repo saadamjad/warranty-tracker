@@ -33,7 +33,8 @@
     "postinstall": "prisma generate && node scripts/copy-vendor-assets.mjs",
     "test:db": "vitest run --config vitest.db.config.mts",
     "e2e": "node e2e/acceptance.mjs && node e2e/sync.mjs && node e2e/a11y.mjs",
-    "vercel-build": "node scripts/migrate-on-deploy.mjs && next build"
+    "vercel-build": "node scripts/migrate-on-deploy.mjs && next build",
+    "build:live": "node scripts/migrate-on-deploy.mjs && next build"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",

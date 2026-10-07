@@ -18,14 +18,15 @@ const schema = z.object({
   CRON_SECRET: z.string().optional(),
   /** Public address used in email links. */
   APP_URL: z.url().default("http://localhost:3000"),
-  /** Set by Vercel; "production" turns on the live-site checks below. */
+  /** "production" on the public site (set by hand on other hosts; Vercel sets VERCEL_ENV). */
+  APP_ENV: z.string().optional(),
   VERCEL_ENV: z.string().optional(),
 });
 
 // Dev defaults (localhost links, sign-in links printed to logs, no cron secret)
 // would be unsafe on the public site, so the live deployment refuses to start with them.
 const liveSchema = schema.superRefine((env, ctx) => {
-  if (env.VERCEL_ENV !== "production") return;
+  if (env.APP_ENV !== "production" && env.VERCEL_ENV !== "production") return;
   const fail = (path: string, message: string) => ctx.addIssue({ code: "custom", path: [path], message });
   if (!env.APP_URL.startsWith("https://")) fail("APP_URL", "must be the public https address");
   if (env.AUTH_SECRET.length < 32) fail("AUTH_SECRET", "must be at least 32 characters");

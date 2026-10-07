@@ -58,6 +58,11 @@ describe("serverEnv", () => {
       expect(serverEnv).toThrow(/APP_URL.*AUTH_SECRET.*CRON_SECRET.*SMTP_HOST.*EMAIL_FROM/);
     });
 
+    it("applies the same checks on other hosts via APP_ENV", async () => {
+      const serverEnv = await loadEnv({ ...live, VERCEL_ENV: "", APP_ENV: "production", APP_URL: "http://localhost:3000" });
+      expect(serverEnv).toThrow(/APP_URL/);
+    });
+
     it("leaves preview and local deployments on dev defaults", async () => {
       const serverEnv = await loadEnv({ ...valid, VERCEL_ENV: "preview" });
       expect(serverEnv().APP_URL).toBe("http://localhost:3000");
