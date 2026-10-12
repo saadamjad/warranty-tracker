@@ -70,5 +70,20 @@ npm run e2e
    `AUTH_SECRET` (`npx auth secret`), `APP_URL=https://<your-domain>` and `CRON_SECRET` (any long random string).
    `vercel.json` schedules the daily reminder emails and the 30-day purge; Vercel sends `CRON_SECRET` with them.
 
+### Hostinger instead of Vercel (redeploys on every push)
+Needs a Hostinger plan with **Node.js web apps** (Business or Cloud). Steps 1–4 stay the same: Hostinger's
+web hosting has no Postgres, so the database stays on Neon and files on R2.
+1. hPanel → **Websites → Add website → Node.js web app → Import Git repository**, authorize GitHub and pick
+   this repo, branch `main`. Every push to `main` then rebuilds and redeploys.
+2. Build settings: Node **22**, install `npm install`, build `npm run build:live` (applies migrations, then
+   builds), start `npm start`.
+3. Environment variables: everything from steps 1–4 plus `AUTH_SECRET`, `CRON_SECRET`,
+   `APP_URL=https://<your-domain>` and **`APP_ENV=production`** (turns on the live-site checks and migrations).
+   A Hostinger mailbox works for email: `SMTP_HOST=smtp.hostinger.com`, `SMTP_PORT=587`.
+4. Point the domain at the app and turn on SSL in hPanel; add the domain to the R2 CORS policy.
+5. Daily jobs: in GitHub → **Settings → Secrets and variables → Actions**, add `APP_URL` and `CRON_SECRET`
+   (same values). `.github/workflows/daily-jobs.yml` then calls the reminder and purge jobs every day.
+   GitHub pauses scheduled workflows after 60 days without a commit; re-enable it under **Actions** if so.
+
 ## License
 MIT — see [`LICENSE`](LICENSE). Contributions: [`CONTRIBUTING.md`](CONTRIBUTING.md).
