@@ -1,0 +1,27 @@
+name: Daily jobs
+
+# vercel.json schedules these calls on Vercel only. Hosts without a scheduler (Hostinger)
+# get them from here once the APP_URL and CRON_SECRET repository secrets are set.
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  call:
+    runs-on: ubuntu-latest
+    env:
+      APP_URL: ${{ secrets.APP_URL }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - name: Purge, then reminder emails
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "APP_URL / CRON_SECRET secrets not set; nothing to call."
+            exit 0
+          fi
+          for job in purge reminders; do
+            curl --fail-with-body --silent --show-error --max-time 120 \
+              -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/$job"
+            echo
+          done
