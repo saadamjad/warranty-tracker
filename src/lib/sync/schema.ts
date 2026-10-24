@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // What devices and the server exchange. The server validates every request with these (zod,
-// CLAUDE.md); limits keep one request bounded. Files travel separately via presigned URLs.
+// CLAUDE.md); limits keep one request bounded. Files travel separately via signed file links.
 
 const timestamp = z.iso.datetime();
 const day = z.iso.date();

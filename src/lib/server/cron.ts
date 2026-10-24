@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { serverEnv } from "./env";
 
-/** Vercel Cron sends `Authorization: Bearer <CRON_SECRET>`; anything else is refused. */
+/** The daily jobs workflow sends `Authorization: Bearer <CRON_SECRET>`; anything else is refused. */
 export function isCronRequest(request: Request): boolean {
   const secret = serverEnv().CRON_SECRET;
   if (!secret) return false;

@@ -142,7 +142,7 @@ export async function pullChanges(userId: string, cursor: bigint, limit = 200): 
   };
 }
 
-/** Storage keys of one of the user's documents, for presigned URLs; null if not theirs. */
+/** Storage keys of one of the user's documents, for signed file links; null if not theirs. */
 export async function documentKeys(userId: string, documentId: string) {
   const row = await prisma.document.findFirst({
     where: { id: documentId, userId },

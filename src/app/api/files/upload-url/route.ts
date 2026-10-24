@@ -4,7 +4,7 @@ import { documentKeys } from "@/lib/server/repo";
 import { uploadUrl } from "@/lib/server/storage";
 import { uploadUrlBody, type FileUrl } from "@/lib/sync/files";
 
-/** Presigned PUT URLs for a document the user already pushed (its metadata came first). */
+/** Signed upload links for a document the user already pushed (its metadata came first). */
 export async function POST(request: Request) {
   const userId = await sessionUserId();
   if (!userId) return jsonError(401, "Sign in to back up.");

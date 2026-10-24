@@ -47,7 +47,7 @@ Also: no dashboards/charts, sparse notifications, no legal claims about warranty
 
 ## Commands
 ```
-docker compose up -d        # postgres (port 5433) + S3Mock storage (port 9000)
+docker compose up -d        # MariaDB (port 3307); documents are saved in .storage/
 npm run dev                 # http://localhost:3000 (magic links print to terminal)
 npm run db:migrate          # apply Prisma schema
 npm test · npm run test:db · npm run lint · npm run typecheck · npm run build

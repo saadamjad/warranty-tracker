@@ -82,7 +82,7 @@ Tick `[x]` when a task is done, tested and committed. Work top to bottom.
 ## Phase 11 — Hardening & launch
 - [x] AC-1..20 all pass in Chrome via `npm run e2e` (incl. delete → Recently Deleted → restore), plus two-device sync
 - [x] Accessibility (labels, focus, contrast), phone-width layout: axe clean on every page, light and dark, 375 px
-- [ ] Deploy: Vercel + Neon + R2 + SMTP env; README setup steps
+- [ ] Deploy: Hostinger Business (MySQL, disk files, mailbox) env; README setup steps (D-38)
 
 ## Phase 12 — Launch readiness  (audit 2026-10-06)
 - [x] Security upgrades: pdfjs-dist ≥6.2.108, nodemailer 10, `npm audit --omit=dev` clean, pin next-auth beta

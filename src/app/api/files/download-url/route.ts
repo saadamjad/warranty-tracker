@@ -4,7 +4,7 @@ import { documentKeys } from "@/lib/server/repo";
 import { downloadUrl } from "@/lib/server/storage";
 import { downloadUrlBody, type FileUrl } from "@/lib/sync/files";
 
-/** Presigned GET URLs for every page of one of the user's documents (restore, FR-29). */
+/** Signed download links for every page of one of the user's documents (restore, FR-29). */
 export async function POST(request: Request) {
   const userId = await sessionUserId();
   if (!userId) return jsonError(401, "Sign in to restore.");

@@ -34,7 +34,7 @@ Requires Node 22.13+ (see `.nvmrc`) and Docker.
 ```bash
 npm install                      # also copies reader/PDF worker files into public/vendor
 cp .env.example .env.local       # then set AUTH_SECRET: npx auth secret
-docker compose up -d             # Postgres on 5433, S3-compatible storage on 9000
+docker compose up -d             # MariaDB on 3307 (documents are saved in .storage/)
 npm run db:migrate               # create the database tables
 npm run dev                      # http://localhost:3000
 ```
@@ -52,38 +52,32 @@ npm run build && npx next start -p 3100 > /tmp/vault-e2e.log 2>&1 &
 npm run e2e
 ```
 
-## Deploy (free tiers: Vercel + Neon + Cloudflare R2 + Resend)
-1. **Database — [Neon](https://neon.tech):** create a project. Use the *pooled* connection string for the app
-   (`DATABASE_URL`, add `?sslmode=require&pgbouncer=true&connection_limit=1`) and the *direct* string as
-   `DIRECT_URL`. Production deploys apply new migrations automatically (`npm run vercel-build`); previews never do.
-2. **Files — [Cloudflare R2](https://developers.cloudflare.com/r2/):** create a bucket and an API token with
-   read/write on it. Set `S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com`, `S3_REGION=auto`,
-   `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. Browsers upload directly, so add a CORS policy:
-   ```json
-   [{ "AllowedOrigins": ["https://<your-domain>"], "AllowedMethods": ["GET", "PUT"], "AllowedHeaders": ["content-type"], "MaxAgeSeconds": 3600 }]
-   ```
-3. **Email — [Resend](https://resend.com):** verify a sending domain, then set `SMTP_HOST=smtp.resend.com`,
-   `SMTP_PORT=587`, `SMTP_USER=resend`, `SMTP_PASSWORD=<api key>`, `EMAIL_FROM="Purchase Vault <no-reply@your-domain>"`.
-4. **Google sign-in (optional):** create an OAuth client with redirect URI
-   `https://<your-domain>/api/auth/callback/google`; set `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET`.
-5. **App — [Vercel](https://vercel.com):** import the GitHub repo and add the variables above plus
-   `AUTH_SECRET` (`npx auth secret`), `APP_URL=https://<your-domain>` and `CRON_SECRET` (any long random string).
-   `vercel.json` schedules the daily reminder emails and the 30-day purge; Vercel sends `CRON_SECRET` with them.
-
-### Hostinger instead of Vercel (redeploys on every push)
-Needs a Hostinger plan with **Node.js web apps** (Business or Cloud). Steps 1–4 stay the same: Hostinger's
-web hosting has no Postgres, so the database stays on Neon and files on R2.
-1. hPanel → **Websites → Add website → Node.js web app → Import Git repository**, authorize GitHub and pick
-   this repo, branch `main`. Every push to `main` then rebuilds and redeploys.
-2. Build settings: Node **22**, install `npm install`, build `npm run build:live` (applies migrations, then
-   builds), start `npm start`.
-3. Environment variables: everything from steps 1–4 plus `AUTH_SECRET`, `CRON_SECRET`,
-   `APP_URL=https://<your-domain>` and **`APP_ENV=production`** (turns on the live-site checks and migrations).
-   A Hostinger mailbox works for email: `SMTP_HOST=smtp.hostinger.com`, `SMTP_PORT=587`.
-4. Point the domain at the app and turn on SSL in hPanel; add the domain to the R2 CORS policy.
-5. Daily jobs: in GitHub → **Settings → Secrets and variables → Actions**, add `APP_URL` and `CRON_SECRET`
-   (same values). `.github/workflows/daily-jobs.yml` then calls the reminder and purge jobs every day.
+## Deploy on Hostinger Business (no other services needed)
+Everything runs on one Hostinger Business plan (SPEC D-38): the app, its MySQL database, the stored
+documents and the email. Every push to `main` redeploys.
+1. **Database:** hPanel → **Databases → MySQL Databases**, create a database and user. Then
+   `DATABASE_URL=mysql://<user>:<password>@localhost:3306/<database>` (use the host hPanel shows if
+   `localhost` doesn't connect). Each deploy applies new migrations before the new code goes live.
+2. **Email:** hPanel → **Emails**, create a mailbox (for example `no-reply@<your-domain>`). Then
+   `SMTP_HOST=smtp.hostinger.com`, `SMTP_PORT=587`, `SMTP_USER=<mailbox>`, `SMTP_PASSWORD=<mailbox password>`,
+   `EMAIL_FROM="Purchase Vault <mailbox>"`.
+3. **Files:** pick a folder in your home directory but **outside** the app's folder, for example
+   `STORAGE_DIR=/home/<user>/vault-files`. A redeploy replaces the app folder, so files kept inside it would be
+   lost. The app creates the folder on the first upload and refuses to start with a relative path.
+4. **App:** hPanel → **Websites → Add website → Node.js web app → Import Git repository**, authorize GitHub,
+   pick this repo and branch `main`. Node **22**, install `npm install`, build `npm run build:live`, start `npm start`.
+5. **Environment variables:** the values above plus `APP_ENV=production`, `APP_URL=https://<your-domain>`,
+   `AUTH_SECRET` (`npx auth secret`) and `CRON_SECRET` (any random string of 32+ characters).
+   The app refuses to start on the live site if one of these is missing or unsafe.
+6. **Domain:** point the domain at the app and turn on SSL in hPanel.
+7. **Daily jobs:** GitHub → **Settings → Secrets and variables → Actions**, add `APP_URL` and `CRON_SECRET`
+   (same values). `.github/workflows/daily-jobs.yml` then runs the reminder emails and the 30-day purge every day.
    GitHub pauses scheduled workflows after 60 days without a commit; re-enable it under **Actions** if so.
+8. **Google sign-in (optional):** create an OAuth client with redirect URI
+   `https://<your-domain>/api/auth/callback/google`; set `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET`.
+
+Backups: the database and `STORAGE_DIR` together are the whole backup. Check that your Hostinger backups
+cover both, since documents are not in the database.
 
 ## License
 MIT — see [`LICENSE`](LICENSE). Contributions: [`CONTRIBUTING.md`](CONTRIBUTING.md).

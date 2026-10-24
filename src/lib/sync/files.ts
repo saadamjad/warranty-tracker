@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { MAX_FILE_BYTES } from "@/features/documents/lib/limits";
 
-// Requests for presigned file URLs. Keys are never sent by the device; the server looks
+// Requests for signed file links. Keys are never sent by the device; the server looks
 // them up for the session user's own document.
 
 export const uploadUrlBody = z.object({

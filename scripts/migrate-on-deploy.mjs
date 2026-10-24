@@ -1,4 +1,4 @@
-// Production build step (Vercel: vercel-build; other hosts: build:live): apply committed migrations before the new code goes live, so the
+// Production build step (build:live): apply committed migrations before the new code goes live, so the
 // schema and code can't drift. Only production deploys migrate; previews could otherwise
 // apply an unmerged branch's migrations to the shared database.
 import { execFileSync } from "node:child_process";

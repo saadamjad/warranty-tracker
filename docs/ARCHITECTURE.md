@@ -6,10 +6,10 @@ Tech choices: `STACK.md`. Requirements: `SPEC.md`.
 ```
 Browser (primary store)                                Server (backup/sync, optional account)
  UI (Next.js App Router, Tailwind)                      Route handlers /api/*
-  └ features/*/lib  ─→ Dexie (IndexedDB)                  └ repo.ts (userId-scoped) ─→ Prisma ─→ Postgres
-       purchases, documents(blobs), meta                    storage.ts ─→ S3 (S3Mock dev / R2), presigned URLs
+  └ features/*/lib  ─→ Dexie (IndexedDB)                  └ repo.ts (userId-scoped) ─→ Prisma ─→ MySQL
+       purchases, documents(blobs), meta                    storage.ts ─→ disk (STORAGE_DIR), signed links
   └ MiniSearch index (offline fuzzy search)              Auth.js v5 (magic link + Google)
-  └ Tesseract.js Web Worker (on-device reading)          Vercel cron (daily): reminder emails, 30-day purge
+  └ Tesseract.js Web Worker (on-device reading)          GitHub Actions (daily): reminder emails, 30-day purge
   └ public/sw.js (offline app shell)
   └ sync: push records newer than watermark → /api/sync/push, pull /api/sync/pull?cursor= (D-35)
 ```

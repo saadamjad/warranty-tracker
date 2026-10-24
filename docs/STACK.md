@@ -4,7 +4,7 @@ Decided (SPEC D-25). Do not swap or add alternatives without a new Decision in S
 
 | Area | Choice | Why |
 |---|---|---|
-| Runtime / pkg manager | Node 20 LTS · npm | CI + Vercel default (D-27) |
+| Runtime / pkg manager | Node 20 LTS · npm | CI default (D-27); Hostinger runs Node 22 |
 | Framework | Next.js 15 App Router · React 19 · TypeScript strict | One codebase for UI + API routes |
 | Styling | Tailwind CSS 4 | No component library; small plain UI |
 | Local store (primary) | Dexie 4 (IndexedDB) | Local-first, offline, stores file blobs (D-15) |
@@ -14,12 +14,12 @@ Decided (SPEC D-25). Do not swap or add alternatives without a new Decision in S
 | Dates | date-fns 4 | Tree-shakable, no locale magic |
 | Validation | zod 4 | Every API input |
 | Export | jszip | Client-side ZIP export, works offline (D-11) |
-| Server DB | Postgres 16 · **Prisma 6** | Docker locally, Neon free in prod. Prisma 6 not 7: works with @auth/prisma-adapter without driver adapters (D-26) |
+| Server DB | MySQL/MariaDB · **Prisma 6** | MariaDB in Docker locally, Hostinger's MySQL in prod (D-38). Prisma 6 not 7: works with @auth/prisma-adapter without driver adapters (D-26) |
 | Auth | Auth.js v5 (`next-auth` beta) + `@auth/prisma-adapter` | Email magic link (nodemailer) + Google (D-21) |
-| File storage | `@aws-sdk/client-s3` + `s3-request-presigner` | S3Mock locally (D-34), Cloudflare R2 in prod; presigned URLs |
+| File storage | Server disk (`STORAGE_DIR`) · Node `fs` | No dependency; signed short-lived links to `/api/files/blob` (D-38) |
 | Email (prod) | Resend free tier via SMTP (nodemailer) | Magic links + reminder emails; dev prints to console |
-| Hosting | Vercel Hobby + Vercel Cron (daily) | Reminders + 30-day purge |
-| Tests | Vitest · fake-indexeddb · jsdom · @testing-library/react | Fast unit/component tests; `test:db` against Postgres |
+| Hosting | Hostinger Business Node.js web app + GitHub Actions (daily) | Reminders + 30-day purge (D-38) |
+| Tests | Vitest · fake-indexeddb · jsdom · @testing-library/react | Fast unit/component tests; `test:db` against MariaDB |
 | Browser checks | playwright-core (installed Chrome) · axe-core | `npm run e2e`: acceptance, two-device sync, accessibility (D-36) |
 | CI | GitHub Actions: lint → typecheck → test → migrate + test:db → build | `.github/workflows/ci.yml` |
 
