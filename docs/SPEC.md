@@ -112,7 +112,7 @@ no privacy claims stronger than reality. Each user's data isolated. Receipt read
 | D-20 | Limits: 20 MB/file, 20 pages/document |
 | D-21 | Auth: email magic link + Google. Email via free SMTP/Resend; dev prints link to console |
 | D-22 | English UI, any currency, default PKR (user-changeable) |
-| D-23 | Hosting: Vercel Hobby + Neon free + Cloudflare R2 free. Public GitHub repo |
+| D-23 | Hosting: Vercel Hobby + Neon free + Cloudflare R2 free. Public GitHub repo. *Superseded by D-38* |
 | D-24 | Return-deadline reminder default: 3 days before (user-changeable) |
 | D-25 | Tech stack is locked in `STACK.md`; changing it needs a new decision here |
 | D-26 | Prisma 6 (not 7): no driver adapters/config file needed, proven with Auth.js adapter |
@@ -123,10 +123,11 @@ no privacy claims stronger than reality. Each user's data isolated. Receipt read
 | D-31 | Currency comes from the receipt when detected; otherwise empty on review with the user's default currency offered as a suggestion chip. Never filled silently |
 | D-32 | Tesseract worker, core and English traineddata self-hosted under `public/tesseract/` and cached by the service worker; no CDN (offline reading) |
 | D-33 | Pages are static shells: ids travel in the query string (`/p?id=`, `/add?to=`, `/search?q=`) so one cached page opens any purchase offline |
-| D-34 | Local dev storage is S3Mock (`adobe/s3mock`), not MinIO: MinIO images are no longer on Docker Hub. Dev-only; prod stays Cloudflare R2 (D-23) |
+| D-34 | Local dev storage is S3Mock (`adobe/s3mock`), not MinIO: MinIO images are no longer on Docker Hub. Dev-only; prod stays Cloudflare R2 (D-23). *Superseded by D-38* |
 | D-35 | Change tracking uses `updatedAt` against a per-device sync watermark instead of an outbox: every change already stamps `updatedAt`, so none can be missed; re-pushing an unchanged record is harmless |
 | D-36 | Browser checks (`npm run e2e`) use `playwright-core` with the installed Chrome and `axe-core`, dev-only: offline, on-device reading and two-device sync can only be verified in a real browser. Run against a local production build before a release |
 | D-37 | Every value a device saves must be one the backup accepts: text inputs stop at the backup's field limits (`FIELD_LIMITS`), a typed amount is stored as a plain decimal ("1,299" → "1299.00") and one that isn't a number is refused with a hint, never guessed. Local changes are stamped after the sync watermark (D-35), and a purchase deleted forever is never recreated by an older push (D-29) |
+| D-38 | Hosting is one Hostinger Business plan, no other paid or third-party service (owner, 2026-10-24): the server database is Hostinger's MySQL/MariaDB, and document files are stored on the app's own disk in `STORAGE_DIR`, outside the deployed folder so redeploys keep them. Files still never pass through sync requests: the server hands out short-lived signed links to its own file routes, which check owner, size and expiry. Replaces Neon + R2 (D-23) and S3Mock (D-34) |
 
 ## 9. Acceptance scenarios (must all pass for Definition of Done)
 AC-1 save receipt without account · AC-2 capture, review, fix one field, save · AC-3 save with missing fields ·
