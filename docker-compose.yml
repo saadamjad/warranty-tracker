@@ -1,29 +1,19 @@
-# Local dev services only. Prod uses Neon + Cloudflare R2 (SPEC D-23).
+# Local dev database only. Prod is Hostinger's MySQL/MariaDB (SPEC D-38); files live on disk.
 services:
-  postgres:
-    image: postgres:16
+  db:
+    image: mariadb:11.4
     environment:
-      POSTGRES_USER: vault
-      POSTGRES_PASSWORD: vault
-      POSTGRES_DB: vault
+      MARIADB_USER: vault
+      MARIADB_PASSWORD: vault
+      MARIADB_DATABASE: vault
+      MARIADB_ROOT_PASSWORD: vault
     ports:
-      # 5433 on the host so it never clashes with a locally installed Postgres.
-      - "5433:5432"
+      # 3307 on the host so it never clashes with a locally installed MySQL.
+      - "3307:3306"
     volumes:
-      - pgdata:/var/lib/postgresql/data
-
-  # S3-compatible storage for dev (D-34): MinIO images are no longer published on Docker Hub.
-  s3:
-    image: adobe/s3mock:4.10.0
-    environment:
-      COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS: vault-documents
-      COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT: "true"
-      COM_ADOBE_TESTING_S3MOCK_STORE_ROOT: /data
-    ports:
-      - "9000:9090"
-    volumes:
-      - s3data:/data
+      - dbdata:/var/lib/mysql
+      # Creates the disposable test database next to the dev one.
+      - ./scripts/dev-db-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
 
 volumes:
-  pgdata:
-  s3data:
+  dbdata:

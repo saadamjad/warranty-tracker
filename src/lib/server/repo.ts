@@ -5,10 +5,12 @@ import type { PullResponse, PushBody } from "@/lib/sync/schema";
 import { prisma } from "./prisma";
 import { deleteObjects } from "./storage";
 import {
+  documentFileKeys,
   documentFromRow,
   documentToRow,
   purchaseFromRow,
   purchaseToRow,
+  stringList,
   warrantyFromRow,
   warrantyToRow,
 } from "./syncMapping";
@@ -88,7 +90,7 @@ async function purgePurchases(tx: Tx, userId: string, vaultId: string, ids: stri
   const rows = await tx.purchase.findMany({ where: { id: { in: ids }, userId }, include: { documents: true } });
   await tx.purchase.deleteMany({ where: { id: { in: rows.map((row) => row.id) }, userId } });
   for (const row of rows) await recordChange(tx, userId, vaultId, "purchase", row.id, "DELETE");
-  return rows.flatMap((row) => row.documents.flatMap((document) => [...document.originalKeys, ...document.enhancedKeys])).filter(Boolean);
+  return rows.flatMap((row) => row.documents.flatMap(documentFileKeys));
 }
 
 /** Which of these purchases were deleted forever (by the user or the 30-day purge). */
@@ -142,10 +144,16 @@ export async function pullChanges(userId: string, cursor: bigint, limit = 200): 
 
 /** Storage keys of one of the user's documents, for presigned URLs; null if not theirs. */
 export async function documentKeys(userId: string, documentId: string) {
-  return prisma.document.findFirst({
+  const row = await prisma.document.findFirst({
     where: { id: documentId, userId },
     select: { originalKeys: true, enhancedKeys: true, mimeTypes: true },
   });
+  if (!row) return null;
+  return {
+    originalKeys: stringList(row.originalKeys),
+    enhancedKeys: stringList(row.enhancedKeys),
+    mimeTypes: stringList(row.mimeTypes),
+  };
 }
 
 /**
@@ -160,7 +168,7 @@ export async function deleteAccount(userId: string): Promise<void> {
     // Cascades to sessions, sign-in accounts, vaults, purchases, documents, warranties, reminder settings.
     prisma.user.delete({ where: { id: userId } }),
   ]);
-  const keys = documents.flatMap((document) => [...document.originalKeys, ...document.enhancedKeys]).filter(Boolean);
+  const keys = documents.flatMap(documentFileKeys);
   if (keys.length) await deleteObjects(keys);
 }
 
@@ -181,14 +189,19 @@ export async function saveReminderPrefs(userId: string, prefs: ReminderPrefsWire
  * from the database clock, so app servers with drifting clocks agree on the window.
  */
 export async function hitRateLimit(key: string, windowMs: number): Promise<number> {
-  const [row] = await prisma.$queryRaw<{ count: number }[]>`
-    WITH bounds AS (SELECT now() - make_interval(secs => ${windowMs / 1000}) AS expired)
-    INSERT INTO "RateLimit" ("key", "windowStart", "count") VALUES (${key}, now(), 1)
-    ON CONFLICT ("key") DO UPDATE SET
-      "count" = CASE WHEN "RateLimit"."windowStart" < (SELECT expired FROM bounds) THEN 1 ELSE "RateLimit"."count" + 1 END,
-      "windowStart" = CASE WHEN "RateLimit"."windowStart" < (SELECT expired FROM bounds) THEN now() ELSE "RateLimit"."windowStart" END
-    RETURNING "count"`;
-  return row.count;
+  const windowMicros = windowMs * 1000;
+  // UTC_TIMESTAMP, not NOW(): stored dates are UTC and Hostinger's server time zone may not be.
+  // MySQL applies SET assignments left to right, so "count" is set while "windowStart" is still old.
+  // The row stays locked until commit, so the read below sees exactly this hit's count.
+  return prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`
+      INSERT INTO RateLimit (\`key\`, windowStart, count) VALUES (${key}, UTC_TIMESTAMP(3), 1)
+      ON DUPLICATE KEY UPDATE
+        count = IF(windowStart < UTC_TIMESTAMP(3) - INTERVAL ${windowMicros} MICROSECOND, 1, count + 1),
+        windowStart = IF(windowStart < UTC_TIMESTAMP(3) - INTERVAL ${windowMicros} MICROSECOND, UTC_TIMESTAMP(3), windowStart)`;
+    const row = await tx.rateLimit.findUniqueOrThrow({ where: { key }, select: { count: true } });
+    return row.count;
+  });
 }
 
 /** Drops counters whose window ended before `cutoff`; they would restart on their next hit anyway. */
@@ -227,9 +240,7 @@ export async function purgeDeletedBefore(cutoff: Date): Promise<{ purchases: num
     prisma.warranty.deleteMany({ where: { deletedAt: { lt: cutoff } } }),
   ]);
 
-  const keys = [...purchases.flatMap((p) => p.documents), ...documents]
-    .flatMap((document) => [...document.originalKeys, ...document.enhancedKeys])
-    .filter(Boolean);
+  const keys = [...purchases.flatMap((p) => p.documents), ...documents].flatMap(documentFileKeys);
   if (keys.length) await deleteObjects(keys);
   return { purchases: purchases.length, documents: documents.length, warranties: warranties.count };
 }

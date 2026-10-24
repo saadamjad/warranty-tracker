@@ -3,7 +3,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { prisma } from "./prisma";
 import { clearRateLimitsBefore, hitRateLimit } from "./repo";
 
-describe("hitRateLimit (Postgres)", () => {
+describe("hitRateLimit (database)", () => {
   afterAll(() => prisma.$disconnect());
 
   it("counts every simultaneous hit exactly once", async () => {

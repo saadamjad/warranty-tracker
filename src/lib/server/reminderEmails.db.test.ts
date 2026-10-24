@@ -14,7 +14,7 @@ async function userWithWarranty(daysLeft: number, extra: { remindersOff?: boolea
   const user = await prisma.user.create({ data: { email: `${randomUUID()}@test.local` } });
   const vault = await prisma.vault.create({ data: { ownerId: user.id } });
   const purchase = await prisma.purchase.create({
-    data: { id: randomUUID(), userId: user.id, vaultId: vault.id, productName: extra.productName ?? "TV <55\">", remindersOff: extra.remindersOff ?? false, updatedAt: today },
+    data: { id: randomUUID(), userId: user.id, vaultId: vault.id, productName: extra.productName ?? "TV <55\">", remindersOff: extra.remindersOff ?? false, fieldMeta: {}, updatedAt: today },
   });
   await prisma.warranty.create({ data: { id: randomUUID(), userId: user.id, purchaseId: purchase.id, endDate: inDays(daysLeft), updatedAt: today } });
   if (extra.emailEnabled === false) await prisma.reminderPref.create({ data: { userId: user.id, emailEnabled: false } });

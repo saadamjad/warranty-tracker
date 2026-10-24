@@ -1,4 +1,5 @@
 // Server schema: backup/sync store only; the device is the primary store (D-15).
+// MySQL/MariaDB: Hostinger's database (D-38). Text longer than 191 chars needs an explicit type.
 // Every app table carries userId so repo.ts can scope all queries to the session user.
 
 generator client {
@@ -6,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -14,10 +15,10 @@ datasource db {
 
 model User {
   id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
+  name          String?   @db.Text
+  email         String?   @unique @db.VarChar(320)
   emailVerified DateTime?
-  image         String?
+  image         String?   @db.Text
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -32,12 +33,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String?  @db.Text
   session_state     String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -85,19 +86,19 @@ model Purchase {
   id             String    @id
   vaultId        String
   userId         String
-  title          String?
-  productName    String?
-  model          String?
-  serial         String?
-  merchant       String?
+  title          String?   @db.VarChar(300)
+  productName    String?   @db.VarChar(300)
+  model          String?   @db.VarChar(100)
+  serial         String?   @db.VarChar(100)
+  merchant       String?   @db.VarChar(300)
   purchaseDate   DateTime? @db.Date
   amount         Decimal?  @db.Decimal(14, 2)
   currency       String?
   reference      String?
-  notes          String?
+  notes          String?   @db.Text
   returnDeadline DateTime? @db.Date
   /// Per-field { source: 'extracted' | 'user', confidence?, updatedAt } (D-17)
-  fieldMeta      Json      @default("{}")
+  fieldMeta      Json
   remindersOff   Boolean   @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime
@@ -124,12 +125,12 @@ model Document {
   userId       String
   type         DocumentType @default(RECEIPT)
   pageCount    Int
-  /// Storage keys per page, in page order (EC-01)
-  originalKeys String[]
+  /// Storage keys per page, in page order (EC-01); string[] as JSON (MySQL has no list columns)
+  originalKeys Json
   /// "" where a page has no easier-to-read copy, keeping positions aligned
-  enhancedKeys String[]
-  mimeTypes    String[]
-  ocrText      String?
+  enhancedKeys Json
+  mimeTypes    Json
+  ocrText      String?      @db.MediumText
   sha256       String
   sizeBytes    Int
   createdAt    DateTime     @default(now())
@@ -148,10 +149,10 @@ model Warranty {
   id         String    @id
   purchaseId String
   userId     String
-  provider   String?
+  provider   String?   @db.VarChar(300)
   startDate  DateTime? @db.Date
   endDate    DateTime? @db.Date
-  notes      String?
+  notes      String?   @db.Text
   createdAt  DateTime  @default(now())
   updatedAt  DateTime
   deletedAt  DateTime?
@@ -222,7 +223,7 @@ model Change {
 // Fixed-window counters (sign-in emails per address/IP, API calls per user). One row per key;
 // a hit in an expired window restarts it. Old rows are cleared by the purge cron.
 model RateLimit {
-  key         String   @id
+  key         String   @id @db.VarChar(512)
   windowStart DateTime
   count       Int
 }

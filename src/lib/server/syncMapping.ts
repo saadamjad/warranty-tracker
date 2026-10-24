@@ -4,7 +4,7 @@ import type { DocumentWire, PageFileWire, PurchaseWire, WarrantyWire } from "@/l
 import { pageKey } from "./storage";
 
 // Converts between database rows and the sync wire format. Dates are calendar days
-// (YYYY-MM-DD) on the wire and @db.Date columns in Postgres.
+// (YYYY-MM-DD) on the wire and @db.Date columns in the database.
 
 const day = (value: Date | null) => value?.toISOString().slice(0, 10);
 const toDay = (value: string | undefined) => (value ? new Date(`${value}T00:00:00.000Z`) : null);
@@ -60,12 +60,26 @@ export function purchaseToRow(purchase: PurchaseWire, userId: string, vaultId: s
 const TYPES = { RECEIPT: "receipt", INVOICE: "invoice", WARRANTY: "warranty", OTHER: "other" } as const;
 const TYPE_ROWS = { receipt: "RECEIPT", invoice: "INVOICE", warranty: "WARRANTY", other: "OTHER" } as const;
 
+/** Per-page lists are JSON columns (MySQL has no list type, D-38); only this code writes them. */
+export function stringList(value: Prisma.JsonValue): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+type KeyColumns = Pick<DocumentRow, "originalKeys" | "enhancedKeys">;
+
+/** Every stored file of a document, originals and easier-to-read copies. */
+export function documentFileKeys(row: KeyColumns): string[] {
+  return [...stringList(row.originalKeys), ...stringList(row.enhancedKeys)].filter(Boolean);
+}
+
 /** Page files are recorded as storage keys; the wire lists them by index and kind. */
 export function documentFromRow(row: DocumentRow): DocumentWire {
-  const files: PageFileWire[] = row.originalKeys.map((_, index) => ({
+  const mimeTypes = stringList(row.mimeTypes);
+  const enhancedKeys = stringList(row.enhancedKeys);
+  const files: PageFileWire[] = stringList(row.originalKeys).map((_, index) => ({
     index,
-    mimeType: row.mimeTypes[index] as PageFileWire["mimeType"],
-    hasEnhanced: Boolean(row.enhancedKeys[index]),
+    mimeType: mimeTypes[index] as PageFileWire["mimeType"],
+    hasEnhanced: Boolean(enhancedKeys[index]),
   }));
   return strip({
     id: row.id,

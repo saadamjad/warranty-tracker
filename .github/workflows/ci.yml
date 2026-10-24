@@ -9,21 +9,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     services:
-      postgres:
-        image: postgres:16
+      db:
+        image: mariadb:11.4
         env:
-          POSTGRES_USER: vault
-          POSTGRES_PASSWORD: vault
-          POSTGRES_DB: vault_test
+          MARIADB_USER: vault
+          MARIADB_PASSWORD: vault
+          MARIADB_DATABASE: vault_test
+          MARIADB_ROOT_PASSWORD: vault
         ports:
-          - 5432:5432
+          - 3306:3306
         options: >-
-          --health-cmd "pg_isready -U vault"
+          --health-cmd "healthcheck.sh --connect --innodb_initialized"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
     env:
-      TEST_DATABASE_URL: postgresql://vault:vault@localhost:5432/vault_test
+      TEST_DATABASE_URL: mysql://vault:vault@localhost:3306/vault_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
