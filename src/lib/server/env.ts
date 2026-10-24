@@ -1,3 +1,4 @@
+import path from "node:path";
 import { z } from "zod";
 
 const schema = z.object({
@@ -5,11 +6,8 @@ const schema = z.object({
   AUTH_SECRET: z.string().min(1),
   AUTH_GOOGLE_ID: z.string().optional(),
   AUTH_GOOGLE_SECRET: z.string().optional(),
-  S3_ENDPOINT: z.url(),
-  S3_REGION: z.string().default("auto"),
-  S3_BUCKET: z.string().min(1),
-  S3_ACCESS_KEY_ID: z.string().min(1),
-  S3_SECRET_ACCESS_KEY: z.string().min(1),
+  /** Folder for document files (D-38). Live: an absolute path outside the deployed app folder. */
+  STORAGE_DIR: z.string().min(1).default(".storage"),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().default(587),
   SMTP_USER: z.string().optional(),
@@ -34,6 +32,8 @@ const liveSchema = schema.superRefine((env, ctx) => {
   for (const key of ["SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD"] as const) {
     if (!env[key]) fail(key, "is required so sign-in links are emailed, not logged");
   }
+  // A relative folder sits inside the deployed app, which a redeploy replaces with the files in it.
+  if (!path.isAbsolute(env.STORAGE_DIR)) fail("STORAGE_DIR", "must be an absolute folder outside the app");
   if (/@example\.com>?$/.test(env.EMAIL_FROM)) fail("EMAIL_FROM", "must be a real sending address");
 });
 

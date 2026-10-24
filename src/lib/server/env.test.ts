@@ -1,12 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const valid = {
-  DATABASE_URL: "postgresql://vault:vault@localhost:5432/vault",
+  DATABASE_URL: "mysql://vault:vault@localhost:3307/vault",
   AUTH_SECRET: "secret",
-  S3_ENDPOINT: "http://localhost:9000",
-  S3_BUCKET: "vault-documents",
-  S3_ACCESS_KEY_ID: "key",
-  S3_SECRET_ACCESS_KEY: "secret",
 };
 
 async function loadEnv(vars: Record<string, string>) {
@@ -20,12 +16,12 @@ describe("serverEnv", () => {
 
   it("parses a valid environment with defaults", async () => {
     const serverEnv = await loadEnv(valid);
-    expect(serverEnv()).toMatchObject({ S3_REGION: "auto", SMTP_PORT: 587 });
+    expect(serverEnv()).toMatchObject({ STORAGE_DIR: ".storage", SMTP_PORT: 587 });
   });
 
   it("names missing variables without echoing values", async () => {
-    const serverEnv = await loadEnv({ ...valid, AUTH_SECRET: "", S3_ENDPOINT: "not-a-url" });
-    expect(serverEnv).toThrow(/AUTH_SECRET, S3_ENDPOINT/);
+    const serverEnv = await loadEnv({ ...valid, AUTH_SECRET: "", APP_URL: "not-a-url" });
+    expect(serverEnv).toThrow(/AUTH_SECRET, APP_URL/);
   });
 
   describe("on the live deployment", () => {
@@ -39,6 +35,7 @@ describe("serverEnv", () => {
       SMTP_USER: "user",
       SMTP_PASSWORD: "password",
       EMAIL_FROM: "Purchase Vault <hello@vault.example.org>",
+      STORAGE_DIR: "/home/vault/files",
     };
 
     it("accepts a complete configuration", async () => {
@@ -54,8 +51,9 @@ describe("serverEnv", () => {
         CRON_SECRET: "short",
         AUTH_SECRET: "short",
         EMAIL_FROM: "Purchase Vault <no-reply@example.com>",
+        STORAGE_DIR: "files",
       });
-      expect(serverEnv).toThrow(/APP_URL.*AUTH_SECRET.*CRON_SECRET.*SMTP_HOST.*EMAIL_FROM/);
+      expect(serverEnv).toThrow(/APP_URL.*AUTH_SECRET.*CRON_SECRET.*SMTP_HOST.*STORAGE_DIR.*EMAIL_FROM/);
     });
 
     it("applies the same checks on other hosts via APP_ENV", async () => {

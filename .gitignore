@@ -46,3 +46,6 @@ next-env.d.ts
 
 # copied from node_modules on install (scripts/copy-vendor-assets.mjs)
 /public/vendor/
+
+# document files saved in dev (STORAGE_DIR default)
+/.storage/

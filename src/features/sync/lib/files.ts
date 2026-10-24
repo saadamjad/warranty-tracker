@@ -3,8 +3,8 @@ import type { DocumentPage, VaultDocument } from "@/lib/db/types";
 import type { FileUrl, UploadUrlBody } from "@/lib/sync/files";
 import { SyncHttpError, postJson } from "./http";
 
-// Page files travel straight between the device and storage via short-lived URLs;
-// the app server never handles file bytes.
+// Page files travel through short-lived signed links of their own (D-38), never inside
+// sync requests, so a large photo can't hold up the rest of a backup.
 
 /** Uploads files of documents whose details are backed up but whose files aren't yet. */
 export async function uploadPendingFiles(): Promise<void> {

@@ -18,7 +18,7 @@ const withConfig = (dev: boolean): NextConfig => ({
           { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
           {
             key: "Content-Security-Policy",
-            value: contentSecurityPolicy({ storageEndpoint: process.env.S3_ENDPOINT, dev }),
+            value: contentSecurityPolicy({ dev }),
           },
         ],
       },
